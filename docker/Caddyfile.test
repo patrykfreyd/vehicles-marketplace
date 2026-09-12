@@ -1,0 +1,11 @@
+# Placeholder domain — replace test.example.co.uk / api.test.example.co.uk
+# once a real domain is chosen (see docs/deployment-runbook.md and
+# plans/02-environments-infrastructure.md §11). Same shape as
+# Caddyfile.production, one environment behind.
+test.example.co.uk {
+    reverse_proxy web:3000
+}
+
+api.test.example.co.uk {
+    reverse_proxy api:3001
+}

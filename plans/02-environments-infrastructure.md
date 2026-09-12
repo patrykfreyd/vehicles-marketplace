@@ -1,6 +1,7 @@
 # Plan 02 — Environments & Infrastructure
 
-Status: Draft
+Status: Implemented (Local); Test/Production deliberately not provisioned
+yet — see §9 and §11
 Depends on: Plan 01 (repo structure, `docker/` and root files already exist
 as placeholders)
 Blocks: Plan 05 (API needs `DATABASE_URL`/`REDIS_URL` conventions), Plan 06
@@ -51,11 +52,11 @@ happens later (see §9).
 
 | Decision | Recommendation | Status |
 |---|---|---|
-| VPS provider | Any mainstream provider with hourly/monthly billing and snapshotting (e.g. Hetzner, DigitalOcean, OVH) | **Needs your choice** — §11 |
-| Domain name | — | **Needs your choice** — §11 |
-| Production server spec | 4 vCPU / 8 GB RAM / 100–200 GB SSD, per the stack doc | Proposed, confirm cost tolerance |
+| VPS provider | Any mainstream provider with hourly/monthly billing and snapshotting (e.g. Hetzner, DigitalOcean, OVH) | **Decided** — OVH, VPS-2 tier, for both Test and Production (§11.1) |
+| Domain name | — | **Deferred** — `example.co.uk` stays as the placeholder throughout the repo until a real domain is chosen (§11.2) |
+| Production server spec | 4 vCPU / 8 GB RAM / 100–200 GB SSD, per the stack doc | Proposed, confirm cost tolerance once OVH's VPS-2 spec is checked against this |
 | Test server spec | Smaller than Production (e.g. 2 vCPU / 4 GB RAM) is acceptable | Proposed |
-| When to actually provision Test/Production VPS | Provision **Test** once Plan 05/06 land something worth deploying; provision **Production** only before real launch, to avoid paying for idle servers during early build-out | Proposed — avoids burning budget during Phase 0–2 |
+| When to actually provision Test/Production VPS | Provision **Test** once Plan 05/06 land something worth deploying; provision **Production** only once every dev plan is implemented (stronger than the original "shortly before launch") | **Decided** (§11.3) — see §9 |
 | Off-site backup destination | Deferred to **Plan 36** — this plan only reserves the `/data/backups` local staging directory and the env vars for a destination | Deferred |
 | Email provider | Deferred to **Plan 07/24** (first real consumer of transactional email) — this plan only reserves `EMAIL_API_KEY`/`EMAIL_FROM` | Deferred |
 | AI provider | Deferred to whichever plan first calls it (Plan 14 AI Search) — this plan only reserves `AI_API_KEY` | Deferred |
@@ -233,13 +234,19 @@ twice.
 To avoid paying for infrastructure before there's anything worth deploying:
 
 1. **Now**: build and validate everything against Local only.
-2. **Before Plan 05/06 need a real deploy target**: provision the Test VPS,
-   point `test.<domain>` at it, deploy manually per §8.
-3. **Only shortly before real launch**: provision Production, following the
-   identical Compose/Caddy pattern validated on Test.
+2. **Before Plan 05/06 need a real deploy target**: provision the Test VPS
+   (OVH VPS-2), point `test.<domain>` at it, deploy manually per §8.
+3. **Only once every dev plan in `plans/00-dev-plans-index.md` is
+   implemented and validated on Test**: provision Production (OVH VPS-2),
+   following the identical Compose/Caddy pattern validated on Test. This is
+   a deliberately later trigger than "shortly before real launch" — decided
+   2026-09.
 
 This plan defines the *shape* of Test/Production now so there's no
-redesign later — it doesn't require buying servers today.
+redesign later — it doesn't require buying servers today. Current
+provisioning status lives in
+[`docs/deployment-runbook.md`](../docs/deployment-runbook.md) ("Current
+status"), not here, so it doesn't go stale as the project progresses.
 
 ## 10. Out of scope for this plan (owned elsewhere)
 
@@ -252,30 +259,33 @@ redesign later — it doesn't require buying servers today.
 - Monitoring/uptime/disk alerts → candidate addition to Plan 35 or a future
   ops plan; not designed here
 
-## 11. Open questions for you
+## 11. Open questions for you — resolved 2026-09
 
-1. **VPS provider** — do you have one in mind, or should the runbook stay
-   provider-agnostic (plain Ubuntu + Docker, works anywhere)?
-2. **Domain name** — what should replace the `example.co.uk` placeholder
-   used throughout this plan and the Caddyfiles?
-3. Confirm the provisioning sequencing in §9 (Test only when needed,
-   Production only near launch) rather than standing up all three
-   environments immediately.
+1. **VPS provider** — **OVH, VPS-2 tier**, for both Test and Production.
+   The runbook's commands stay plain Ubuntu + Docker regardless, so this
+   isn't load-bearing if it changes later.
+2. **Domain name** — left as the `example.co.uk` placeholder for now;
+   replace it repo-wide (Caddyfiles + this plan + the runbook) once a real
+   domain is chosen.
+3. Provisioning sequencing — confirmed, and pushed further than originally
+   proposed: Test provisions when Plan 05/06 need a real deploy target
+   (unchanged), but **Production now waits until every dev plan is
+   implemented**, not just "shortly before launch." See §9.
 
 ## 12. Acceptance criteria
 
-- [ ] `docker-compose.yml` + `docker-compose.local.yml` bring up
+- [x] `docker-compose.yml` + `docker-compose.local.yml` bring up
       `postgres`, `redis`, and (once Plan 01's placeholder apps exist)
       `web`/`api`/`worker` locally with one command.
-- [ ] `.env.example` contains every variable in §5, with comments, and no
+- [x] `.env.example` contains every variable in §5, with comments, and no
       real values.
-- [ ] `docker-compose.test.yml` / `docker-compose.production.yml` and their
+- [x] `docker-compose.test.yml` / `docker-compose.production.yml` and their
       Caddyfiles exist and follow the identical service shape as Local,
       differing only via env file and domain.
-- [ ] `/data` layout (§4) is documented in the runbook, including which
+- [x] `/data` layout (§4) is documented in the runbook, including which
       paths must be bind-mounted (never anonymous volumes).
-- [ ] `docs/deployment-runbook.md` describes the manual Local→Test→
+- [x] `docs/deployment-runbook.md` describes the manual Local→Test→
       Production promotion flow step by step.
-- [ ] A README section explains `APP_ENV` vs `NODE_ENV` and states plainly:
+- [x] A README section explains `APP_ENV` vs `NODE_ENV` and states plainly:
       never point Local or Test at Production's database, Redis, or
       uploads.

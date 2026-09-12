@@ -33,6 +33,41 @@ pnpm dev
 server — press `w`/`i`/`a` or scan the QR code), and `worker` (a heartbeat
 process, no HTTP) concurrently via Turborepo.
 
+This is the "Hybrid" local mode — see [Environments](#environments) below
+for Postgres/Redis (needed once Plan 06 lands) and the alternative "Full
+Docker" mode.
+
+## Environments
+
+Three environments — **Local**, **Test**, **Production** — same code, same
+Docker images, different config/secrets only. Docker Compose services,
+reverse proxy config, the `/data` layout, and the full deployment runbook
+are defined in
+[`plans/02-environments-infrastructure.md`](plans/02-environments-infrastructure.md)
+and [`docs/deployment-runbook.md`](docs/deployment-runbook.md) — Test and
+Production aren't provisioned yet (see the runbook's "Current status"),
+but Local is fully usable now:
+
+```sh
+# Hybrid (recommended): Postgres/Redis in Docker, apps via `pnpm dev`
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d postgres redis
+pnpm dev
+
+# Full Docker: everything in containers
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
+**`APP_ENV` vs `NODE_ENV`**: `APP_ENV` (`local` | `test` | `production`) is
+this project's own environment discriminator — application code should
+branch on this, never on `NODE_ENV` alone. `NODE_ENV` controls
+Node/Next.js's own dev-vs-production behavior and is set automatically by
+each Docker image target — you don't need to set it by hand. Both are
+documented in [`.env.example`](.env.example).
+
+**Never** point Local or Test's database, Redis, or file uploads at
+Production's — every environment has fully separate data, always (see
+§6 of the runbook).
+
 ## Scripts
 
 Run any of these from the repo root; Turborepo fans each one out to every
@@ -61,7 +96,8 @@ packages/        shared types, validation, config, utils, design-tokens,
                  analytics-types, eslint-config, prettier-config, tsconfig
 catalogue/       JSON staging data (Plan 08/09)
 prisma/          Prisma schema + migrations (Plan 06)
-docker/          Dockerfiles, compose fragments (Plan 02)
+docker/          Dockerfiles, Caddyfiles (Plan 02)
+docs/            deployment-runbook.md (Plan 02)
 ```
 
 ## How internal packages are consumed (no build step)
@@ -94,6 +130,7 @@ in [`packages/tsconfig/base.json`](packages/tsconfig/base.json).
 
 ## What's deliberately not here yet
 
-No database, no auth, no real UI, no Docker services — see §7 of the plan
-for the full "in scope / out of scope" list and which later plan owns each
-piece.
+No real database content, no auth, no real UI — see §7 of
+[Plan 01](plans/01-monorepo-tooling-setup.md) and §10 of
+[Plan 02](plans/02-environments-infrastructure.md) for the full "in scope /
+out of scope" list and which later plan owns each piece.

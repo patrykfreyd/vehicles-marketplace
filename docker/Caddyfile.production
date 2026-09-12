@@ -1,0 +1,12 @@
+# Placeholder domain — replace example.co.uk / api.example.co.uk once a
+# real domain is chosen (see docs/deployment-runbook.md and
+# plans/02-environments-infrastructure.md §11). Caddy handles HTTPS
+# certificate provisioning/renewal automatically once the domain's DNS
+# points at this host — nothing else to configure for TLS.
+example.co.uk {
+    reverse_proxy web:3000
+}
+
+api.example.co.uk {
+    reverse_proxy api:3001
+}
