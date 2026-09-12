@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { HealthStatus, Id } from './index';
+import type { ApiError, FuelType, HealthStatus, Id, PageResponse } from './index';
 
 describe('types', () => {
   it('allows a HealthStatus value to be assigned', () => {
@@ -10,5 +10,20 @@ describe('types', () => {
   it('treats a branded Id as a plain string at runtime', () => {
     const userId = 'user_1' as Id<'User'>;
     expect(typeof userId).toBe('string');
+  });
+
+  it('re-exports validation-derived types usable without importing zod', () => {
+    const error: ApiError = { code: 'NOT_FOUND', message: 'Not found.' };
+    const fuel: FuelType = 'ELECTRIC';
+    const page: PageResponse<string> = {
+      items: ['a'],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    };
+    expect(error.code).toBe('NOT_FOUND');
+    expect(fuel).toBe('ELECTRIC');
+    expect(page.items).toEqual(['a']);
   });
 });

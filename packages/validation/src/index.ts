@@ -1,13 +1,22 @@
 /**
  * Shared Zod schemas — the source of truth for validation across web, api,
- * and mobile. Real domain schemas (Vehicle, Listing, ...) land here as later
- * plans introduce them (see Plan 03). For now this holds one real, working
- * example: the health-check payload, imported by both apps/web and
- * apps/api so that Plan 01's acceptance criteria proves cross-package
- * imports work end-to-end, not just on paper.
+ * and mobile (see plans/03-shared-types-validation.md §2: a schema is
+ * always written once, here; its type is always derived with `z.infer`,
+ * never hand-duplicated in `@vehicles-marketplace/types`).
+ *
+ * The cross-cutting common/enum schemas below are Plan 03's content.
+ * Everything domain-specific (Vehicle, Listing, ...) lands here as later
+ * plans introduce them, following the same conventions.
  */
 import { z } from 'zod';
-import type { HealthStatus } from '@vehicles-marketplace/types';
+
+export * from './common/errors';
+export * from './common/money';
+export * from './common/pagination';
+export * from './enums/body-style';
+export * from './enums/drivetrain';
+export * from './enums/fuel';
+export * from './enums/transmission';
 
 export const HealthCheckSchema = z.object({
   status: z.enum(['ok', 'error']),
@@ -16,11 +25,13 @@ export const HealthCheckSchema = z.object({
 
 export type HealthCheck = z.infer<typeof HealthCheckSchema>;
 
-// Compile-time check that the schema's inferred status stays in sync with
-// the shared `HealthStatus` type from @vehicles-marketplace/types.
-type _AssertStatusMatches = HealthCheck['status'] extends HealthStatus ? true : never;
-const _assertStatusMatches: _AssertStatusMatches = true;
-void _assertStatusMatches;
+/**
+ * `@vehicles-marketplace/types` re-exports this alongside the schema's own
+ * type, following §2's rule (schema lives here, type is derived once).
+ * Dependencies only ever point `types` -> `validation`, never the reverse,
+ * so the two packages don't form a cycle.
+ */
+export type HealthStatus = HealthCheck['status'];
 
 /** Builds a validated "everything's fine" health-check payload. */
 export function createHealthCheck(): HealthCheck {

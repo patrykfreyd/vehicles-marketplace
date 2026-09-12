@@ -128,6 +128,15 @@ work at runtime:
 The shared `@vehicles-marketplace/*` path alias itself is configured once,
 in [`packages/tsconfig/base.json`](packages/tsconfig/base.json).
 
+## Shared types & validation
+
+`packages/types` and `packages/validation` hold the cross-cutting
+conventions and primitives every later plan's domain schemas build on —
+naming/casing rules, the entity ID strategy, the shared API error contract,
+and schema-authoring conventions. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) and
+[`plans/03-shared-types-validation.md`](plans/03-shared-types-validation.md).
+
 ## What's deliberately not here yet
 
 No real database content, no auth, no real UI — see §7 of
