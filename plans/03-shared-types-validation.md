@@ -1,6 +1,6 @@
 # Plan 03 — Shared Types & Validation Package
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 01 (`packages/types`, `packages/validation` exist as empty
 shells with one example export already proven to work cross-package)
 Blocks: almost everything — Plan 04 (form validation UX renders these
@@ -44,32 +44,31 @@ always derived with `z.infer`, never hand-duplicated in `types`.**
 | Area | Convention | Source |
 |---|---|---|
 | Enum/controlled values | `UPPER_SNAKE_CASE` (`AWD`, `PETROL`, `LISTING_VIEW`) | Matches both the catalogue doc's controlled values and the analytics doc's event names — one rule, not two |
-| TS/JSON field names | `camelCase` (`powerBhp`, `engineCapacityCc`) | Idiomatic for TS/JSON APIs; see §4 for how this maps to the catalogue JSON staging files, which use `snake_case` |
+| TS/JSON field names | `camelCase`, end-to-end, no exceptions (`powerBhp`, `engineCapacityCc`) | Idiomatic for TS/JSON APIs; see §4 — the catalogue JSON staging files use `camelCase` too, **not** `snake_case` (decided 2026-09, overriding this plan's original default) |
 | Units in field names | Always suffix the unit (`powerBhp`, `torqueNm`, `engineCapacityCc`, `zeroToSixtyTwoSeconds`) | Carried directly from the catalogue doc's examples — never a bare ambiguous `power` |
 | Money | Integer **minor units** (pence), never a float; field name suffixed `Pence` (`pricePence`) | Avoids float rounding bugs in price comparisons/filters |
 | Timestamps | ISO 8601 UTC strings over the wire, `Date` internally | Standard, unambiguous across web/mobile/API |
 
-## 4. Decision needed: JSON staging vs TypeScript field casing
+## 4. Decision: JSON staging vs TypeScript field casing — `camelCase` everywhere
 
 The catalogue doc's example JSON files use `snake_case`
-(`engine_capacity_cc`, `power_bhp`). This plan's default position:
+(`engine_capacity_cc`, `power_bhp`). This plan originally proposed keeping
+`snake_case` in the catalogue JSON staging files and having the Plan 09
+importer translate to `camelCase`. **Overridden 2026-09: `camelCase`
+end-to-end, no translation step, no exceptions.**
 
 - **Catalogue JSON staging files** (authored/edited by humans and AI per
-  Plan 08/09) **keep `snake_case`** — it's a separate, human/AI-editable
-  staging format, not a TypeScript API surface, and matching the idea doc's
-  existing examples avoids a needless rewrite of that spec.
-- **Everything downstream of the catalogue importer** — the Postgres
-  schema (via Prisma, which itself maps to `snake_case` columns but exposes
-  `camelCase` in the generated client), the API, and all Zod
-  schemas/TS types — uses `camelCase`.
-- The catalogue importer (Plan 09) is therefore also the place that maps
-  `snake_case` JSON → `camelCase` domain objects. This plan defines the
-  target shape it must map *into*; Plan 09 owns the mapping code.
-
-Flag: if you'd rather keep `snake_case` end-to-end (including the API and
-Zod schemas) to avoid *any* field-name translation step, say so now —
-it's a bigger repo-wide convention than it looks and much cheaper to
-change before Plan 06/08 write real schemas against it.
+  Plan 08/09) use `camelCase` (`engineCapacityCc`, `powerBhp`) — same as
+  everywhere else. Plan 08/09 write the staging JSON examples/schema with
+  this casing rather than the idea doc's `snake_case` examples.
+- **Everything downstream** — the Postgres schema (via Prisma, which maps
+  to `snake_case` columns but exposes `camelCase` in the generated
+  client), the API, and all Zod schemas/TS types — also uses `camelCase`,
+  as originally planned.
+- There is therefore **no field-name-casing translation step anywhere in
+  this repo**. The catalogue importer (Plan 09) still owns turning staging
+  JSON into domain objects, but that mapping no longer includes a casing
+  conversion.
 
 ## 5. Entity ID strategy
 
@@ -81,7 +80,8 @@ veh_01HZX82K7Q4M                  ← vehicle/listing: prefixed opaque ID
 lst_01HZYC421Q
 ```
 
-This plan adopts both, deliberately, for different entity classes:
+This plan adopts both, deliberately, for different entity classes —
+confirmed as-is, 2026-09, no changes from the original proposal:
 
 - **Catalogue entities** (make, model, generation, derivative, engine,
   colour, equipment) use **stable, human-readable slug IDs**
@@ -93,24 +93,25 @@ This plan adopts both, deliberately, for different entity classes:
   conversation, analytics event, etc.) use **prefixed ULIDs**
   (`usr_01HZ...`, `veh_01HZ...`, `lst_01HZ...`) — sortable by creation
   time, collision-free without a DB round trip, and the prefix makes IDs
-  self-describing in logs/errors. Generation helper lives in
-  `packages/utils`.
+  self-describing in logs/errors. Generate one with
+  `createId('usr')` from `packages/utils` (backed by the `ulid` package).
 
 To stop ID types being accidentally interchangeable (passing a
 `derivativeId` where a `vehicleId` is expected compiles fine with plain
 strings), `packages/types` defines a small branded-ID helper:
 
 ```ts
-type Brand<T, B extends string> = T & { readonly __brand: B };
+export type Id<Brand extends string> = string & { readonly __brand: Brand };
 
-export type VehicleId = Brand<string, "VehicleId">;
-export type ListingId = Brand<string, "ListingId">;
-export type DerivativeId = Brand<string, "DerivativeId">;
-// ...one per entity, added by the plan that owns that entity
+// Each owning plan adds its own alias when it introduces the entity, e.g.:
+export type VehicleId = Id<'Vehicle'>;
+export type ListingId = Id<'Listing'>;
+export type DerivativeId = Id<'Derivative'>;
 ```
 
-Each owning plan adds its own branded ID type here when it introduces the
-entity — this plan just establishes the pattern and creates the helper.
+Each owning plan adds its own branded ID type alias when it introduces the
+entity — this plan just establishes the pattern and creates the `Id<Brand>`
+helper (no per-entity aliases are pre-declared here).
 
 ## 6. The shared API error/validation contract
 
@@ -220,26 +221,27 @@ inline a quick type" in an app instead of adding it here.
 
 ## 11. Acceptance criteria
 
-- [ ] `packages/validation` exports `ApiErrorSchema`, `PageRequestSchema`,
+- [x] `packages/validation` exports `ApiErrorSchema`, `PageRequestSchema`,
       `PageResponseSchema`, `MoneyPenceSchema`, and the four enums in §7,
       each with a passing/failing test.
-- [ ] `packages/types` re-exports every inferred type above plus the
+- [x] `packages/types` re-exports every inferred type above plus the
       branded-ID helper from §5, importable from `apps/web`, `apps/api`,
       and `apps/mobile` without pulling `zod` into a package that only
-      needs the type.
-- [ ] A short `CONTRIBUTING.md` (or section in the root README) states the
+      needs the type. (Dependency direction is `types` → `validation` only,
+      via `import type`, fully erased at compile time — see §2.)
+- [x] A short `CONTRIBUTING.md` (or section in the root README) states the
       conventions from §3, §5, §6, and §8 so they don't live only in this
       plan document.
-- [ ] `pnpm lint`/`typecheck`/`test` remain green after adding these
+- [x] `pnpm lint`/`typecheck`/`test` remain green after adding these
       packages' real content.
 
-## 12. Open questions for you
+## 12. Open questions for you — resolved 2026-09
 
-1. §4 — confirm `camelCase` in TS/API with `snake_case` kept only in
-   catalogue JSON staging files, or would you rather standardize on one
-   casing everywhere end-to-end?
-2. §5 — confirm the slug-ID-for-catalogue / prefixed-ULID-for-transactional
-   split, or would you prefer one ID scheme for every entity?
-3. Any additional enum you already know is used in more than one upcoming
-   plan (beyond the four in §7) that should be pulled forward now instead
-   of risking duplication later?
+1. §4 — **`camelCase` everywhere, end-to-end, including catalogue JSON
+   staging files.** No `snake_case` anywhere in the repo, no field-name
+   translation step. See the updated §4.
+2. §5 — **confirmed as originally proposed**: slug IDs for catalogue
+   entities, prefixed ULIDs for transactional entities. No changes.
+3. No additional enum identified — the four in §7 (fuel, transmission,
+   drivetrain, body-style) are the only ones pulled forward. Everything
+   else enum-shaped stays with the plan that owns that domain.

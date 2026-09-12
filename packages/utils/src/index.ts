@@ -2,6 +2,7 @@
  * Small cross-app helpers with no framework dependencies. Grows as later
  * plans need genuinely shared, trivial logic — kept deliberately tiny here.
  */
+export { createId } from './ids';
 
 /** Exhaustiveness helper for switch/if-else chains over a union type. */
 export function assertNever(value: never): never {
