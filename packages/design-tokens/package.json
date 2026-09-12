@@ -1,0 +1,11 @@
+{
+  "name": "@vehicles-marketplace/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "description": "Colors/spacing/typography tokens, light+dark. Reserved for Plan 04 (Design System)."
+}

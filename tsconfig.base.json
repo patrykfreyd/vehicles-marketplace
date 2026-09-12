@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "//": "Convenience root config so editors opened at the repo root resolve a sane default project. The canonical shared config lives in packages/tsconfig/base.json and is what every app/package actually extends via '@vehicles-marketplace/tsconfig/base.json'.",
+  "extends": "./packages/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "exclude": ["node_modules", "**/dist", "**/.next", "**/.turbo", "**/.expo", "**/coverage"]
+}

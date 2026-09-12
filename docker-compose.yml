@@ -1,0 +1,3 @@
+# Reserved by Plan 01 so the location exists; Plan 02 (Environments &
+# Infrastructure) owns the real services (Postgres, Redis, ...).
+services: {}
