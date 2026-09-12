@@ -1,0 +1,6 @@
+# Call the binary directly rather than via `pnpm` — Husky puts the repo's
+# own node_modules/.bin on PATH already, and some Git clients (GitHub
+# Desktop included) run hooks with a minimal PATH that has no global pnpm
+# on it at all, so `pnpm lint-staged` fails with "command not found" there
+# even though it works fine from a normal terminal.
+lint-staged

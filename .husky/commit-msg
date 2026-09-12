@@ -1,0 +1,12 @@
+# Conventional Commits, warn-only for now (see plans/01-monorepo-tooling-setup.md
+# §8) — always exits 0 so a non-conventional message never blocks a commit,
+# it just prints what commitlint would have flagged. Flip to blocking by
+# changing `|| true` to nothing once the team grows.
+#
+# Husky runs this script with `sh -e`, so a trailing `; exit 0` after a
+# failing command never gets reached — `-e` aborts right at the failure.
+# `|| true` neutralizes the failure inline instead, which `-e` doesn't treat
+# as an abort.
+#
+# Call the binary directly rather than via `pnpm` — see pre-commit for why.
+commitlint --edit "$1" --verbose || true

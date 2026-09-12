@@ -1,0 +1,16 @@
+{
+  "extends": "@vehicles-marketplace/tsconfig/base.json",
+  "//": "NestJS's DI needs real emitDecoratorMetadata support, and ts-node's transpileModule path (unlike esbuild-based tools) provides that correctly, so this app runs on plain CommonJS + ts-node rather than the ESNext/bundler settings the shared base uses for web/mobile.",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node10",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmit": true,
+    "outDir": "dist"
+  },
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "include": ["src"]
+}
