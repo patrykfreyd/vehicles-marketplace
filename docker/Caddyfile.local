@@ -1,0 +1,13 @@
+# Caddy is optional locally (see docker-compose.local.yml — it's on the
+# `proxy` profile, not started by default). This file exists so anyone who
+# does want to validate the reverse-proxy path locally gets the same shape
+# as Test/Production, just against `localhost`/`api.localhost` instead of a
+# real domain. Modern OSes/browsers resolve *.localhost to 127.0.0.1 with no
+# hosts-file editing needed.
+localhost {
+    reverse_proxy web:3000
+}
+
+api.localhost {
+    reverse_proxy api:3001
+}

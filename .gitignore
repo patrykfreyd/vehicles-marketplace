@@ -15,6 +15,10 @@ dist/
 .env.local
 .env.*.local
 
+# Local Docker data dir (docker-compose.local.yml) — Postgres/uploads bind
+# mounts for local dev; never anything to commit here
+.data/
+
 # Test / coverage
 coverage/
 

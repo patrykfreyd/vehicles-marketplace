@@ -1,0 +1,30 @@
+# Kept minimal on purpose: Dockerfiles under docker/ copy specific paths
+# (package.json, pnpm-workspace.yaml, pnpm-lock.yaml, turbo.json, apps/,
+# packages/, prisma/) rather than the whole repo, so most of the usual
+# .gitignore-style excludes are already moot. This file trims what's left —
+# generated/heavy directories that would otherwise bloat the build context
+# or get copied over the image's own freshly-installed versions.
+
+node_modules
+**/node_modules
+
+.git
+.turbo
+**/.turbo
+
+.next
+**/.next
+dist
+**/dist
+coverage
+**/coverage
+*.tsbuildinfo
+
+.expo
+**/.expo
+
+idea
+plans
+.github
+.husky
+.data

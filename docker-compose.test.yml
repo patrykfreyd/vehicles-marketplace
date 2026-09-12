@@ -1,0 +1,32 @@
+# Test overrides layered on docker-compose.yml — see
+# docs/deployment-runbook.md for the full deploy command and provisioning
+# status (Test is not provisioned yet; this file defines the shape ahead of
+# that, per plans/02-environments-infrastructure.md §9/§11).
+#
+# Production-shaped images (no bind mounts, no dev target — `build.target`
+# is left unset so it falls back to each Dockerfile's default final stage,
+# `production`) plus this host's real /data tree. Test's domain
+# (test.example.co.uk, currently a placeholder) is picked up automatically
+# by docker-compose.yml's Caddy service once APP_ENV=test is set — nothing
+# to override here for that.
+#
+# Config/secrets come from .env — an untracked file created directly on the
+# Test host (never committed; see docs/deployment-runbook.md), with
+# APP_ENV=test and DATABASE_URL/REDIS_URL pointed at the `postgres`/`redis`
+# service names.
+services:
+  web:
+    env_file:
+      - .env
+
+  api:
+    env_file:
+      - .env
+    volumes:
+      - /data/uploads:/data/uploads
+
+  worker:
+    env_file:
+      - .env
+    volumes:
+      - /data/uploads:/data/uploads

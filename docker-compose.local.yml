@@ -1,0 +1,75 @@
+# Local overrides layered on docker-compose.yml — see
+# docs/deployment-runbook.md for the full command.
+#
+# - `dev` image targets + each app's own src/ bind-mounted, for hot reload
+# - ports published straight to localhost (no Caddy in the way)
+# - a project-relative data directory instead of /data (which only exists
+#   on deployed hosts — see plans/02-environments-infrastructure.md §4)
+# - Caddy defined but not started by default; add `--profile proxy` to the
+#   command if you want to exercise the reverse-proxy path locally too
+#
+# This is the "Full Docker" mode from the README. The "Hybrid" mode (`pnpm
+# dev` on the host, only postgres/redis in Docker) doesn't need this file at
+# all — run `docker compose --env-file .env.local up -d postgres redis`
+# instead.
+#
+# Only each app's own directory is bind-mounted, not the whole repo:
+#   1. pnpm's workspace packages are resolved as symlinks into a root
+#      node_modules/.pnpm store computed on the *host* OS at `pnpm install`
+#      time — bind-mounting them into a Linux container breaks module
+#      resolution (verified: `docker compose ... up api` failed with
+#      `Cannot find module 'zod'` from packages/validation when the whole
+#      repo, not just apps/api, was bind-mounted).
+#   2. It also means editing a shared `packages/*` file isn't picked up
+#      live in Full Docker mode — rebuild the image
+#      (`docker compose ... build <service>`) to pick it up, or use Hybrid
+#      mode instead, where it's instant.
+#
+# Config/secrets come from .env.local (gitignored, never committed) — see
+# .env.example for every variable and what each hostname should be in this
+# mode specifically.
+services:
+  web:
+    build:
+      target: dev
+    env_file:
+      - .env.local
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./apps/web:/repo/apps/web
+      - /repo/apps/web/node_modules
+      - /repo/apps/web/.next
+
+  api:
+    build:
+      target: dev
+    env_file:
+      - .env.local
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./apps/api:/repo/apps/api
+      - /repo/apps/api/node_modules
+
+  worker:
+    build:
+      target: dev
+    env_file:
+      - .env.local
+    volumes:
+      - ./apps/worker:/repo/apps/worker
+      - /repo/apps/worker/node_modules
+
+  postgres:
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+
+  redis:
+    ports:
+      - '6379:6379'
+
+  caddy:
+    profiles: ['proxy']

@@ -1,0 +1,33 @@
+# Production overrides layered on docker-compose.yml — see
+# docs/deployment-runbook.md for the full deploy command and provisioning
+# status (Production is not provisioned yet — deliberately deferred until
+# every dev plan is implemented and validated on Test, per
+# plans/02-environments-infrastructure.md §9/§11).
+#
+# Identical shape to docker-compose.test.yml: production-shaped images (no
+# bind mounts, no dev target), this host's real /data tree. Production's
+# domain (example.co.uk, currently a placeholder) is picked up automatically
+# by docker-compose.yml's Caddy service once APP_ENV=production is set.
+#
+# Config/secrets come from .env — an untracked file created directly on the
+# Production host (never committed; see docs/deployment-runbook.md), with
+# APP_ENV=production, its own strong secrets, and DATABASE_URL/REDIS_URL
+# pointed at the `postgres`/`redis` service names. This file must never
+# point at Test's (or Local's) database, Redis, or uploads — each
+# environment's data is fully separate, always.
+services:
+  web:
+    env_file:
+      - .env
+
+  api:
+    env_file:
+      - .env
+    volumes:
+      - /data/uploads:/data/uploads
+
+  worker:
+    env_file:
+      - .env
+    volumes:
+      - /data/uploads:/data/uploads
