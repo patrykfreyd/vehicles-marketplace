@@ -7,5 +7,17 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "description": "Colors/spacing/typography tokens, light+dark. Reserved for Plan 04 (Design System)."
+  "description": "Colors/spacing/typography/radius/elevation tokens, light+dark. Framework-agnostic — consumed by ui-web (Tailwind CSS vars) and ui-mobile (plain JS theme object). See plans/04-design-system-ui-foundations.md.",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@vehicles-marketplace/eslint-config": "workspace:*",
+    "@vehicles-marketplace/tsconfig": "workspace:*",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
 }

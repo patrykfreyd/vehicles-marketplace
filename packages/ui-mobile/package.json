@@ -7,5 +7,52 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "description": "Shared React Native components for apps/mobile. Reserved for Plan 04 (Design System)."
+  "description": "Shared React Native components for apps/mobile — design tokens, theming, form validation, toasts. Plan 04 (Design System).",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "5.9.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@vehicles-marketplace/design-tokens": "workspace:*",
+    "@vehicles-marketplace/validation": "workspace:*",
+    "lucide-react-native": "1.45.0",
+    "react-hook-form": "7.88.0",
+    "react-native-toast-message": "2.5.2",
+    "zod": "4.6.2",
+    "zustand": "5.0.15"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-native": "^0.87.0",
+    "react-native-gesture-handler": "*",
+    "react-native-reanimated": "*",
+    "react-native-svg": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "30.0.0",
+    "@types/react": "19.3.0",
+    "@vehicles-marketplace/eslint-config": "workspace:*",
+    "@vehicles-marketplace/tsconfig": "workspace:*",
+    "eslint": "9.39.5",
+    "jest": "30.5.1",
+    "jest-expo": "57.0.5",
+    "react": "19.3.0",
+    "react-native": "0.87.1",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-svg": "15.15.4",
+    "typescript": "5.9.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^@vehicles-marketplace/(.*)$": "<rootDir>/../$1/src"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!.*(?:(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg))"
+    ]
+  }
 }

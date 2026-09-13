@@ -1,0 +1,96 @@
+/**
+ * Design tokens as CSS variables (Plan 04 §5) — apps/web imports this once
+ * from its global stylesheet:
+ *
+ *   @import "tailwindcss";
+ *   @import "@vehicles-marketplace/ui-web/tokens.css";
+ *
+ * `:root` holds the light values, `.dark` overrides them (next-themes
+ * toggles the `dark` class on <html>, per theme/provider.tsx) — so a
+ * component written as `bg-background text-text` never branches on
+ * `theme === 'dark'` anywhere.
+ *
+ * The hex values below are hand-copied from
+ * `@vehicles-marketplace/design-tokens` (a plain CSS file can't import a TS
+ * module) and checked for drift against it in tokens.css.test.ts — edit
+ * both together.
+ */
+
+:root {
+  --background: #ffffff;
+  --surface: #f5f6f7;
+  --text: #111417;
+  --text-muted: #5b6470;
+  --border: #e2e5e9;
+  --border-strong: #7e86a0;
+  --primary: #2151ff;
+  --primary-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #111417;
+  --warning: #d97706;
+  --warning-foreground: #111417;
+  --error: #d62020;
+  --error-foreground: #ffffff;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+}
+
+.dark {
+  --background: #0b0d10;
+  --surface: #15181c;
+  --text: #f4f5f6;
+  --text-muted: #9aa3ad;
+  --border: #262b31;
+  --border-strong: #666d78;
+  --primary: #5c82ff;
+  --primary-foreground: #0b0d10;
+  --success: #22c55e;
+  --success-foreground: #0b0d10;
+  --warning: #f59e0b;
+  --warning-foreground: #0b0d10;
+  --error: #ef4444;
+  --error-foreground: #0b0d10;
+  --info: #3b82f6;
+  --info-foreground: #0b0d10;
+}
+
+/*
+ * Tailwind v4 theme mapping: `--color-*` here is what makes `bg-primary`,
+ * `text-textMuted`, `border-borderStrong`, etc. exist as utilities, each
+ * resolving through the CSS variable above so the same class works in
+ * both themes. Radius/font tokens are mapped the same way, hand-copied
+ * from design-tokens' radius.ts/typography.ts (also drift-checked).
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-textMuted: var(--text-muted);
+  --color-border: var(--border);
+  --color-borderStrong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primaryForeground: var(--primary-foreground);
+  --color-success: var(--success);
+  --color-successForeground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warningForeground: var(--warning-foreground);
+  --color-error: var(--error);
+  --color-errorForeground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-infoForeground: var(--info-foreground);
+
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 8px -2px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.14), 0 4px 8px -4px rgb(0 0 0 / 0.08);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}

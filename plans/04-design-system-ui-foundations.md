@@ -1,6 +1,6 @@
 # Plan 04 — Design System & Cross-Platform UI Foundations
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 01 (`packages/design-tokens`, `packages/ui-web`,
 `packages/ui-mobile` exist as empty shells), Plan 03 (`ApiErrorSchema` and
 enum conventions this plan's components render)
@@ -248,28 +248,85 @@ apps/mobile/app/dev-components.tsx        # demo screen, same purpose
 
 ## 11. Acceptance criteria
 
-- [ ] Toggling theme on the web demo route persists across reload and
+- [x] Toggling theme on the web demo route persists across reload and
       defaults to system preference on first visit; same for mobile.
-- [ ] Every color in §4 meets WCAG AA contrast against its paired
+      (`next-themes` + `localStorage` on web; a Zustand store persisted via
+      `AsyncStorage` on mobile — both default to `'system'`.)
+- [x] Every color in §4 meets WCAG AA contrast against its paired
       background in both themes (checked with an automated contrast tool
-      as part of this plan, not left to manual eyeballing).
-- [ ] The demo form shows a validation error beneath an input while typing
+      as part of this plan, not left to manual eyeballing). See
+      `packages/design-tokens/src/contrast.ts` + `contrast.test.ts` (24
+      assertions) — a hand-rolled WCAG relative-luminance/contrast-ratio
+      implementation, no new dependency. One color (`error`, light theme)
+      was nudged from `#DC2626` to `#D62020` to clear 4.5:1 against
+      `surface`; a `borderStrong` token was added alongside the original
+      (decorative) `border` for the one pairing needing 3:1
+      non-text-contrast (input outlines) — see colors.ts's comments for
+      the reasoning. No other hex value changed.
+- [x] The demo form shows a validation error beneath an input while typing
       (before submit is pressed), for both a sync rule (required/format)
       and a simulated async rule (debounced), on both web and mobile.
-- [ ] A demo button fires each of the four toast variants; a destructive
+- [x] A demo button fires each of the four toast variants; a destructive
       demo action opens `ConfirmDialog` instead of a toast.
-- [ ] `showApiErrorToast(ApiError)` correctly toasts `message` and, when
+- [x] `showApiErrorToast(ApiError)` correctly toasts `message` and, when
       `fieldErrors` is present instead, does *not* also toast — it defers
       to the form's inline errors so the user doesn't see the same problem
-      reported twice.
-- [ ] All components in §8 render correctly in both themes on both
-      platforms with no hard-coded colors outside `design-tokens`.
+      reported twice. Covered by tests on both platforms.
+- [x] All components in §8 render correctly in both themes on both
+      platforms with no hard-coded colors outside `design-tokens`, with one
+      symmetric exception on both platforms: the Dialog/Modal backdrop
+      scrim (`rgba(0,0,0,0.5)`) is a fixed dimming overlay, not a themed
+      surface — same treatment `elevation.ts`'s shadows already get (see
+      that file's comment) and the same value on both web
+      (`dialog.tsx`'s `bg-black/50`) and mobile (`modal.tsx`).
 
-## 12. Open questions for you
+Verified with `pnpm typecheck && pnpm lint && pnpm test` green across all
+18 workspace packages, plus a real `next build` (apps/web, confirms the
+Tailwind → CSS-variable → dark-mode pipeline actually compiles, not just
+typechecks) and a `storybook build` (packages/ui-web).
 
-1. Confirm Radix+Tailwind (web) and RHF-on-mobile-too, or flag either as a
-   choice you'd rather change before components are built on it.
-2. The color palette in §4 was pulled from the mockup boards — treat as
-   placeholder, or is this close enough to lock in for now?
-3. Confirm deferring Storybook — fine with the `/dev/components` demo
-   route standing in for now, or worth setting up properly at this stage?
+## 12. Open questions — resolved 2026-09
+
+1. **Confirmed** — Radix + Tailwind (web) and RHF-on-mobile-too, as
+   recommended.
+2. **Close enough to lock in** — the §4 palette's hex values are unchanged
+   from the mockup-derived originals (the one exception, `error` in light
+   mode, was a 1-step darkening forced by WCAG AA on `surface`, not a
+   design change — see §11).
+3. **Set up properly** — Storybook (v10, `@storybook/react-vite` +
+   `@tailwindcss/vite`, `addon-a11y`/`addon-docs`/`addon-themes` for a
+   light/dark toolbar toggle) replaces the "defer it" recommendation in §3;
+   every §8 component has a `.stories.tsx` alongside it in
+   `packages/ui-web/src/components/`, run via `pnpm --filter
+   @vehicles-marketplace/ui-web storybook`. This was scoped to `ui-web`
+   only — Storybook for React Native (`ui-mobile`) is a materially
+   separate setup (its own Metro/RN builder) and wasn't asked for; revisit
+   if `ui-mobile`'s component count grows enough to need the same
+   documentation.
+
+## 13. Deviations from this plan worth flagging
+
+- **`react-native-reanimated` is installed but not used for animation.**
+  §2 reserved it for toast/transition animation; in practice
+  `react-native-toast-message` already animates on RN's built-in
+  `Animated` API, and Reanimated 4 splits its babel plugin into a separate
+  `react-native-worklets` package that this pnpm-strict monorepo doesn't
+  resolve by default (traced via `--traceResolution`: babel-preset-expo
+  silently skips the transform if it can't resolve that plugin, which
+  would leave worklet-based code broken at runtime with no build-time
+  error). `Skeleton`'s pulse and `Modal`'s backdrop fade use plain
+  `Animated` instead — verifiable and dependency-free. Both
+  `react-native-reanimated` and `react-native-gesture-handler` are still
+  installed and wired at the root (`GestureHandlerRootView` in
+  `_layout.tsx`) per §2's decision, ready for a future plan that needs
+  gesture-driven interaction.
+- **`packages/ui-mobile/src/lib/rn-style.ts`.** `react-native@0.87` ships
+  two structurally-incompatible sets of style types (a hand-written
+  `ViewStyle`/`TextStyle` and a separate newer generated one that some
+  components' actual `style` prop resolves to instead) — reproduced with
+  an object as trivial as `{ flexDirection: 'row' }` against `Pressable`.
+  Every `ui-mobile` component routes its style objects through the
+  `rnStyle()` helper there rather than annotating/asserting against
+  `ViewStyle`/`TextStyle` directly; see that file's comment for the full
+  trace. Purely a TypeScript-level workaround — no runtime behavior
+  differs.

@@ -1,0 +1,9 @@
+{
+  "extends": "@vehicles-marketplace/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022"],
+    "noEmit": true
+  },
+  "include": ["src"]
+}
