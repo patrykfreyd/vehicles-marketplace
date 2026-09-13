@@ -5,12 +5,50 @@ on:
   push:
     branches: [main]
 
-# Minimal PR check for this plan: install, lint, typecheck, build. The full
+# Minimal PR check: install, lint, typecheck, build, test. The full
 # build → test → production pipeline is Plan 35 (CI/CD & Deployment
 # Pipeline) — this just catches breakage immediately.
+#
+# postgres/redis: Plan 05 (Backend API Foundation) is the first plan whose
+# tests need real infra — apps/worker's WorkerModule/BullMQ tests skip
+# gracefully when DATABASE_URL/REDIS_URL aren't set (see
+# apps/worker/src/worker.module.test.ts), but here they're set and the
+# services are real, so those tests actually exercise Postgres/Redis
+# instead of just skipping.
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: marketplace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d marketplace"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      APP_ENV: test
+      APP_URL: http://localhost:3000
+      API_URL: http://localhost:3001
+      DATABASE_URL: postgresql://user:pass@localhost:5432/marketplace
+      REDIS_URL: redis://localhost:6379
+      SWAGGER_USER: ci
+      SWAGGER_PASSWORD: ci
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,3 +76,8 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Verify generated API client is up to date
+        run: |
+          pnpm generate:api-client
+          git diff --exit-code -- packages/api-client/src/generated

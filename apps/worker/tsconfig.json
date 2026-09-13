@@ -11,5 +11,5 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "include": ["src"]
+  "include": ["src", "vitest.setup.ts"]
 }

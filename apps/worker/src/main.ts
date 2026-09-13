@@ -1,20 +1,16 @@
 import 'reflect-metadata';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { createHealthCheck } from '@vehicles-marketplace/validation';
-import { AppModule } from './app.module';
+import { WorkerModule } from './worker.module';
 
-const HEARTBEAT_INTERVAL_MS = 30_000;
+const logger = new Logger('worker');
 
 async function bootstrap(): Promise<void> {
-  await NestFactory.createApplicationContext(AppModule);
-  console.log(`worker started: ${JSON.stringify(createHealthCheck())}`);
-
-  // No real queues/processors yet (see the notifications/messaging plans
-  // for background jobs) — this heartbeat just proves the process boots
-  // and stays alive as a persistent worker, like apps/api.
-  setInterval(() => {
-    console.log(`worker heartbeat: ${JSON.stringify(createHealthCheck())}`);
-  }, HEARTBEAT_INTERVAL_MS);
+  // No HTTP listener — this is a pure queue-consumer process (§6). BullMQ's
+  // Worker keeps its own Redis connection open, which is what keeps the
+  // Node process alive; no heartbeat/setInterval is needed for that anymore.
+  await NestFactory.createApplicationContext(WorkerModule);
+  logger.log('worker started');
 }
 
 void bootstrap();

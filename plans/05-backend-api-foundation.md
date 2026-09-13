@@ -1,6 +1,6 @@
 # Plan 05 — Backend API Foundation
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 01 (`apps/api`, `apps/worker` shells), Plan 02
 (`DATABASE_URL`/`REDIS_URL` contract), Plan 03 (`ApiErrorSchema`, enums,
 schema conventions this plan wires into NestJS)
@@ -203,31 +203,146 @@ mismatched caller at typecheck time rather than at runtime.
 
 ## 11. Acceptance criteria
 
-- [ ] `GET /api/v1/health` returns 200 with a Zod-validated body when
+- [x] `GET /api/v1/health` returns 200 with a Zod-validated body when
       Postgres/Redis are reachable, and a correctly-shaped `ApiError` (503,
-      `code: "INTERNAL_ERROR"` or a dedicated health code) when one isn't.
-- [ ] Sending an invalid request to any endpoint returns
+      `code: "SERVICE_UNAVAILABLE"` — the dedicated health code; see §12.4)
+      when one isn't. Verified for real against live Postgres/Redis in
+      Docker, both up and (Redis) stopped.
+- [x] Sending an invalid request to any endpoint returns
       `{ code: "VALIDATION_ERROR", fieldErrors: {...} }` matching
       `ApiErrorSchema` exactly, generated from the same Zod schema used to
-      validate it.
-- [ ] `/api/docs` renders Swagger UI in Local, showing the health
-      endpoint's schema correctly derived from Zod (not hand-written).
-- [ ] `pnpm generate:api-client` produces a typed client that `apps/web`
-      can call to hit `/health` with full type inference on the response.
-- [ ] `apps/worker` boots via `createApplicationContext` (no HTTP port
+      validate it. Proven by `ApiExceptionFilter`'s tests (a Zod parse
+      failure → 400 `VALIDATION_ERROR` with `fieldErrors`); no module in
+      this plan has a request body to validate yet (Health is the only
+      endpoint, and it's a bodyless `GET`), so a real end-to-end validation
+      failure through an actual controller is Plan 07/08's proof to add.
+- [x] `/api/docs` renders Swagger UI in Local (no auth) and Test (behind
+      HTTP basic auth), never in Production — see §12.4. Verified for real:
+      `/api/docs` and `/api/docs-json` both show the health endpoint's
+      schema derived from `HealthCheckResponseDto` (a `createZodDto`
+      wrapper), not hand-written.
+- [x] `pnpm generate:api-client` produces a typed client that `apps/web`
+      (or any app) can call to hit `/api/v1/health` with full type
+      inference on the response — proven by `packages/api-client`'s test,
+      which does exactly that against a mocked fetch. `apps/web`/
+      `apps/mobile` aren't rewired to actually call it — both still render
+      from the local `createHealthCheck()` helper Plan 01 gave them, which
+      this plan didn't touch; wiring a real network call into either app is
+      out of scope ("no business logic", §1).
+- [x] `apps/worker` boots via `createApplicationContext` (no HTTP port
       opened) and successfully processes one test BullMQ job end-to-end
-      against local Redis.
-- [ ] An ESLint rule rejects an untyped `@Body()` parameter added to a
-      test controller, proving the "every DTO is a Zod schema" rule is
-      enforced, not just documented.
-- [ ] `pnpm lint`/`typecheck`/`test`/`build` all remain green.
+      against local Redis. Verified for real against live Redis/Postgres in
+      Docker (`DiagnosticsProcessor`, `apps/worker/src/modules/diagnostics/`).
+- [x] An ESLint rule (`local/require-typed-nest-params`,
+      `packages/eslint-config/rules/require-typed-nest-params.js`) rejects
+      an untyped `@Body()`/`@Query()`/`@Param()` parameter — proven via
+      `@typescript-eslint/rule-tester` against representative valid/invalid
+      controller snippets (its `test.ts`), rather than by committing
+      actually-broken source that `pnpm lint` would then fail on.
+- [x] `pnpm lint`/`typecheck`/`test`/`build` all remain green (verified
+      with real Postgres/Redis in Docker, so `apps/worker`'s
+      infra-dependent tests ran for real rather than skipping).
 
-## 12. Open questions for you
+## 12. Open questions for you — resolved 2026-09
 
-1. Confirm `nestjs-zod` as the Zod↔Nest bridge (§3), or would you rather
-   avoid the dependency and hand-roll the validation pipe + OpenAPI
-   generation?
-2. Confirm `openapi-typescript`/`openapi-fetch` for the generated client,
-   or do you have a preferred codegen tool already (e.g. `orval`)?
-3. Should Swagger UI be reachable at all in Test (behind basic auth), or
-   fully disabled outside Local as the default posture?
+1. **Confirmed `nestjs-zod`** as originally proposed (§3, `createZodDto`,
+   `ZodValidationPipe`, `ZodSerializerInterceptor`/`@ZodResponse`, plus
+   `@nestjs/swagger`'s own introspection of a `createZodDto` class's
+   `_OPENAPI_METADATA_FACTORY` — the v5 release actually installed no
+   longer needs the `patchNestJsSwagger()` call §3 anticipated).
+2. **Confirmed `openapi-typescript` + `openapi-fetch`** as originally
+   proposed (§3/§7) — no change.
+3. **Swagger UI is reachable in Test too**, behind HTTP basic auth
+   (`SWAGGER_USER`/`SWAGGER_PASSWORD`, real values only in Test's untracked
+   `.env` — see `.env.example`); still fully disabled in Production. See
+   §12.4 for how that's implemented (`apps/api/src/swagger.ts`).
+
+## 12.4. Deviations from this plan worth flagging
+
+- **One error code added to §4's fixed list: `SERVICE_UNAVAILABLE` (503)**,
+  for `GET /health` failing — §4 itself invited this ("`INTERNAL_ERROR` or
+  a dedicated health code"). `CONTRIBUTING.md`'s "Backend module
+  conventions" section is the up-to-date copy of the full list; reuse it
+  before inventing another one.
+- **The global exception filter masks every 5xx, not just genuinely
+  unhandled exceptions** — including a *deliberately-thrown* `HttpException`
+  that happens to carry a 5xx status (Terminus's `ServiceUnavailableException`
+  from a failed health check, or `nestjs-zod`'s `ZodSerializationException`
+  from a handler's return value not matching its own response DTO). §4's
+  prose reads as if only "anything else" (non-`HttpException`) gets masked;
+  in practice, a 5xx is a bug or an infra failure either way, and never
+  something the code intended a client to see the detail of, so it's
+  treated the same as a truly unhandled exception — logged in full,
+  answered with the generic message. Only a 4xx `HttpException`'s message
+  passes through as-is.
+- **`GET /health` parses its response manually
+  (`ApiHealthCheckSchema.parse(result)`) instead of using `@ZodResponse`.**
+  Terminus's `HealthCheckResult` return type is generic enough (`info`/
+  `error` are effectively `Partial<...>`, so TS sees "value may be
+  `undefined`" where the schema's inferred type doesn't allow it) that
+  `@ZodResponse`'s compile-time return-type check can't be satisfied
+  without casting the return value away — manual `.parse()` gets the same
+  runtime guarantee with an exact result type. The DTO-drives-Swagger
+  pattern itself is intact via `@ApiOkResponse({ type: HealthCheckResponseDto })`;
+  a module whose handler returns a plain object (i.e. every real business
+  endpoint) shouldn't hit this and can use `@ZodResponse` as designed.
+- **A wildcard `NotFoundFallbackController` (`apps/api/src/common/not-found/`)
+  was added, not in the original plan.** Without it, a request to a route no
+  controller claims (e.g. a typo'd path) never reaches Nest's exception
+  pipeline at all — Express's own fallback returns its default HTML
+  "Cannot GET /..." page, not `ApiErrorSchema` — breaking §4's "every error
+  response" guarantee (caught by hitting a wrong URL during manual
+  verification). Registered last in `AppModule` so every real route still
+  matches first.
+- **`apps/worker/src/app.module.ts` → `worker.module.ts`, class `AppModule`
+  → `WorkerModule`** — matches §6's own code sample, which already used
+  that name; the Plan 01 scaffold hadn't picked it up yet.
+- **Test files are `*.test.ts`, not `*.spec.ts`** as §5's template text
+  literally shows — matches every other test file in this repo (Plan 01's
+  convention); `*.spec.ts` isn't used anywhere.
+- **`apps/api`/`apps/worker`'s `dev` script now loads `.env.local` itself**
+  (via `dotenv-cli`, e.g. `dotenv -e ../../.env.local -- node --watch ...`).
+  Neither app had any env-loading mechanism before this plan (nothing
+  needed a real env var yet); Next.js auto-loads `.env.local` for `apps/web`
+  but NestJS has no equivalent, so without this, Hybrid-mode `pnpm dev`
+  would fail validating `DATABASE_URL`/`REDIS_URL`. Harmless under Docker
+  (`start`, and `dev` under Full-Docker-local) — `env_file` already injects
+  real values directly into `process.env` there, and a `dotenv-cli` load of
+  a same-named var it can't find (or that's already set) is a no-op.
+- **`packages/config`'s `EnvSchema` gained `APP_ENV`, `APP_URL`, `API_URL`,
+  `PORT`, `DATABASE_URL`, `REDIS_URL`, `SWAGGER_USER`, `SWAGGER_PASSWORD`**
+  — this plan is the first consumer of Plan 02's env contract beyond
+  `NODE_ENV`, per that file's own "extend `EnvSchema` instead of inventing
+  ad hoc `process.env` reads" comment. `DATABASE_URL`/`REDIS_URL` are
+  required with no default (fail loudly if unset); the rest default to
+  their Local values.
+- **`.github/workflows/ci.yml` gained `postgres`/`redis` services and their
+  connection env vars**, and a step that regenerates `packages/api-client`
+  and fails the build if it drifts from what's committed. This plan is the
+  first whose tests need real infra to prove anything (`apps/worker`'s
+  BullMQ tests skip gracefully without it, per the point below, but CI
+  should exercise them for real, not just skip).
+- **`apps/worker`'s infra-dependent tests skip instead of failing when
+  `DATABASE_URL`/`REDIS_URL` aren't set**, so `pnpm test` stays green on a
+  machine with no Postgres/Redis running (see
+  `apps/worker/src/worker.module.test.ts` and `vitest.setup.ts` for why the
+  guard reads a derived `WORKER_TEST_HAS_REAL_INFRA` rather than the env
+  vars directly — `WorkerModule`'s `ConfigModule.forRoot` validates
+  `process.env` *at import time*, before any test's `describe.skipIf` gets
+  a chance to run). `turbo.json`'s `test` task now also declares both env
+  vars, so turbo's cache correctly treats "ran for real" and "skipped" as
+  different results instead of replaying a stale one.
+- **Two third-party packages' declared peer-dependency ranges don't yet
+  include Nest 12**: `nestjs-zod@5.5.0` (`@nestjs/common ^10||^11`) and
+  `@nestjs/throttler@6.5.0` (`@nestjs/core` up to `^11`). Both work
+  correctly against the Nest 12 actually installed (verified: full
+  `lint`/`typecheck`/`test`/`build`, plus a real running `apps/api`, all
+  green) — this repo's `.npmrc` already sets `strict-peer-dependencies=false`
+  for exactly this kind of fast-moving-ecosystem mismatch, so `pnpm install`
+  warns rather than fails. Worth re-checking next time either package
+  bumps its peer range.
+- **Each health indicator opens a short-lived Postgres/Redis connection per
+  check** (`apps/api/src/modules/health/indicators/`) rather than sharing a
+  persistent client — there's no Prisma client yet to inject (Plan 06) and
+  health checks are infrequent; revisit once Plan 06/a BullMQ producer in
+  `apps/api` gives these a persistent connection to reuse instead.

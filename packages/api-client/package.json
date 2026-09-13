@@ -7,5 +7,24 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "description": "Generated TS client for web + mobile. Reserved for Plan 05 (Backend API Foundation)."
+  "description": "Generated TS client for web + mobile — see plans/05-backend-api-foundation.md §7.",
+  "scripts": {
+    "generate:api-client": "openapi-typescript ../../apps/api/openapi.json -o src/generated/schema.d.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "@vehicles-marketplace/eslint-config": "workspace:*",
+    "@vehicles-marketplace/tsconfig": "workspace:*",
+    "eslint": "9.39.5",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "5.0.0"
+  }
 }

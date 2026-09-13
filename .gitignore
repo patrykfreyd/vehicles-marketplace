@@ -10,6 +10,12 @@ dist/
 .expo-shared/
 *.tsbuildinfo
 
+# Generated OpenAPI spec (apps/api/scripts/generate-openapi.ts) — a pure
+# intermediate artifact for packages/api-client's codegen step; the
+# generated *client* it feeds (packages/api-client/src/generated) IS
+# committed, since apps consume it with no build step.
+/apps/api/openapi.json
+
 # Env
 .env
 .env.local
