@@ -29,9 +29,12 @@ pnpm dev
 ```
 
 `pnpm dev` starts `web` (http://localhost:3000), `api`
-(http://localhost:3001, health check at `/health`), `mobile` (Expo dev
-server — press `w`/`i`/`a` or scan the QR code), and `worker` (a heartbeat
-process, no HTTP) concurrently via Turborepo.
+(http://localhost:3001 — health check at `/api/v1/health`, Swagger UI at
+`/api/docs`), `mobile` (Expo dev server — press `w`/`i`/`a` or scan the QR
+code), and `worker` (a BullMQ queue-consumer process, no HTTP) concurrently
+via Turborepo. `api`/`worker` need Postgres and Redis reachable to boot —
+see the Hybrid/Full-Docker commands under [Environments](#environments)
+below.
 
 This is the "Hybrid" local mode — see [Environments](#environments) below
 for Postgres/Redis (needed once Plan 06 lands) and the alternative "Full
@@ -73,15 +76,16 @@ Production's — every environment has fully separate data, always (see
 Run any of these from the repo root; Turborepo fans each one out to every
 app/package that defines it (and skips the ones that don't):
 
-| Script              | What it does                                                          |
-| ------------------- | --------------------------------------------------------------------- |
-| `pnpm dev`          | Starts every app in dev/watch mode                                    |
-| `pnpm build`        | Builds/typechecks every app and package                               |
-| `pnpm lint`         | Runs ESLint everywhere                                                |
-| `pnpm typecheck`    | Runs `tsc --noEmit` everywhere                                        |
-| `pnpm test`         | Runs Vitest (web/api/worker/catalogue-cli/packages) and Jest (mobile) |
-| `pnpm format`       | Formats the whole repo with Prettier                                  |
-| `pnpm format:check` | Checks formatting without writing                                     |
+| Script                     | What it does                                                                                                                                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                 | Starts every app in dev/watch mode                                                                                                                                                                   |
+| `pnpm build`               | Builds/typechecks every app and package                                                                                                                                                              |
+| `pnpm lint`                | Runs ESLint everywhere                                                                                                                                                                               |
+| `pnpm typecheck`           | Runs `tsc --noEmit` everywhere                                                                                                                                                                       |
+| `pnpm test`                | Runs Vitest (web/api/worker/catalogue-cli/packages) and Jest (mobile)                                                                                                                                |
+| `pnpm generate:api-client` | Regenerates `packages/api-client` from `apps/api`'s live routes (see [`plans/05-backend-api-foundation.md`](plans/05-backend-api-foundation.md) §7) — run after changing a Zod schema or an endpoint |
+| `pnpm format`              | Formats the whole repo with Prettier                                                                                                                                                                 |
+| `pnpm format:check`        | Checks formatting without writing                                                                                                                                                                    |
 
 A pre-commit hook (Husky + lint-staged) auto-fixes lint/format issues on
 staged files; a commit-msg hook checks Conventional Commits and warns

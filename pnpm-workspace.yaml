@@ -3,7 +3,14 @@ packages:
   - 'packages/*'
 allowBuilds:
   '@parcel/watcher': true
+  # Anonymous telemetry postinstall pulled in transitively (bullmq's tree) —
+  # skipped, not needed for anything functional.
+  '@scarf/scarf': false
   esbuild: true
+  # Native acceleration for msgpackr (bullmq's job (de)serialization) —
+  # built for real perf; msgpackr falls back to pure JS either way if this
+  # is ever turned off.
+  msgpackr-extract: true
   unrs-resolver: true
 # pnpm's default supply-chain guard silently skips optionalDependencies
 # (native platform bindings included) published within the age window —

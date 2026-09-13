@@ -1,0 +1,12 @@
+{
+  "extends": "@vehicles-marketplace/tsconfig/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // The rule itself is plain CommonJS (rules/*.js — required directly by
+    // eslint.config.js with no build step); only its RuleTester spec is
+    // TypeScript, and importing the rule from there needs allowJs to
+    // resolve it at all.
+    "allowJs": true
+  },
+  "include": ["rules"]
+}

@@ -11,6 +11,7 @@
 import { z } from 'zod';
 
 export * from './common/errors';
+export * from './common/health';
 export * from './common/money';
 export * from './common/pagination';
 export * from './enums/body-style';

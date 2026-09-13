@@ -12,6 +12,7 @@
  */
 import type {
   ApiError,
+  ApiHealthCheck,
   BodyStyle,
   Drivetrain,
   FuelType,
@@ -24,6 +25,7 @@ import type {
 
 export type {
   ApiError,
+  ApiHealthCheck,
   BodyStyle,
   Drivetrain,
   FuelType,

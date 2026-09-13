@@ -1,14 +1,44 @@
 /**
  * Runtime config loader/validator. Plan 02 owns the real environment
- * variable contract (.env.example, secrets, per-environment behavior) —
- * this file just proves the load-and-validate pattern with one real,
- * trivial field so later plans extend `EnvSchema` instead of inventing
- * their own ad hoc `process.env` reads.
+ * variable contract (.env.example, secrets, per-environment behavior);
+ * this schema is extended by whichever plan first actually reads a given
+ * variable, rather than each app inventing its own ad hoc `process.env`
+ * read. Plan 05 (Backend API Foundation) is the first consumer beyond the
+ * trivial `NODE_ENV` field Plan 01 proved the pattern with, so it adds the
+ * variables `apps/api`/`apps/worker` need to boot: the app-wide
+ * environment discriminator, the port apps/api binds to, and the
+ * Postgres/Redis/CORS values the health checks and HTTP hardening depend
+ * on. Auth/email/AI/DVLA secrets stay out of this schema until the plan
+ * that first uses each (07, 12, 14, 10) adds it.
  */
 import { z } from 'zod';
 
 export const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+
+  // Project's own environment discriminator — see .env.example and the
+  // root README's "APP_ENV vs NODE_ENV" section. App code should branch on
+  // this, never on NODE_ENV alone.
+  APP_ENV: z.enum(['local', 'test', 'production']).default('local'),
+
+  // Address other services/clients use to reach web/api respectively —
+  // distinct from the PORT apps/api binds to below. Used to build the CORS
+  // allowlist and (API_URL) as the default base URL for generated clients.
+  APP_URL: z.string().url().default('http://localhost:3000'),
+  API_URL: z.string().url().default('http://localhost:3001'),
+
+  // Port apps/api actually binds to (see apps/api/src/main.ts).
+  PORT: z.coerce.number().int().positive().default(3001),
+
+  // Required, no default: booting without a real Postgres/Redis target
+  // should fail loudly rather than silently pointing at nothing.
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
+
+  // Basic-auth credentials gating Swagger UI in Test (see
+  // apps/api/src/swagger.ts) — unused (and unnecessary) in Local/Production.
+  SWAGGER_USER: z.string().optional(),
+  SWAGGER_PASSWORD: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

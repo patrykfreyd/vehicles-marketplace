@@ -1,8 +1,9 @@
-const { base, node } = require('@vehicles-marketplace/eslint-config');
+const { base, node, nest } = require('@vehicles-marketplace/eslint-config');
 
 module.exports = [
   ...base,
   ...node,
+  ...nest,
   {
     rules: {
       // Nest decorators put class members before their usage is "read"; the

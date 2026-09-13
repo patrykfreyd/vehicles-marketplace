@@ -28,7 +28,13 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      // apps/worker's tests run against real Postgres/Redis when these are
+      // set and skip gracefully when they're not (see
+      // apps/worker/vitest.setup.ts) — without declaring them here, turbo's
+      // cache can't tell those two outcomes apart and will replay a stale
+      // result instead of re-running when just the env changes.
+      "env": ["DATABASE_URL", "REDIS_URL"]
     }
   }
 }

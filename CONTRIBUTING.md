@@ -112,6 +112,7 @@ export const ApiErrorSchema = z.object({
 src/
 ├── common/
 │   ├── errors.ts       # ApiErrorSchema
+│   ├── health.ts       # ApiHealthCheckSchema (GET /api/v1/health's body — Plan 05)
 │   ├── pagination.ts   # PageRequestSchema, PageResponseSchema(itemSchema)
 │   └── money.ts        # MoneyPenceSchema
 └── enums/
@@ -129,3 +130,54 @@ Everything else enum-shaped in the idea docs (colour families, equipment
 taxonomy, engine families, analytics event names, advert wizard steps,
 etc.) belongs to the plan that owns that domain and must simply follow the
 `UPPER_SNAKE_CASE` rule above.
+
+## Backend module conventions (Plan 05)
+
+Fixed by
+[`plans/05-backend-api-foundation.md`](plans/05-backend-api-foundation.md).
+Every module-owning plan from Plan 07 (Auth) onward follows these.
+
+**Module template** — copy this shape for every new `apps/api` module:
+
+```text
+apps/api/src/modules/<name>/
+├── <name>.module.ts
+├── <name>.controller.ts
+├── <name>.service.ts
+├── dto/                     # createZodDto(schema) wrappers, one per request/response shape
+└── <name>.controller.test.ts
+```
+
+`apps/api/src/modules/health/` is the worked example this plan built to
+prove the pipeline end-to-end — copy its shape (including how its
+`indicators/` subfolder holds dependencies the service composes) for a
+module with a comparable amount of supporting logic.
+
+Rules:
+
+- Controllers depend only on their own service and shared providers
+  (`ConfigService`, `nestjs-pino`'s `Logger`) — never reach into another
+  module's service directly; cross-module calls go through that module's
+  exported service via Nest's DI.
+- No controller accepts or returns a raw object without a Zod DTO —
+  enforced by the `local/require-typed-nest-params` ESLint rule
+  (`packages/eslint-config/rules/require-typed-nest-params.js`, wired in
+  via `packages/eslint-config`'s `nest` overlay) rejecting an untyped
+  `@Body()`/`@Query()`/`@Param()` parameter. Wrap the Zod schema with
+  `createZodDto()` from `nestjs-zod` and annotate the parameter with that
+  class; document the response the same way with `@ZodResponse()`.
+- List endpoints return `PageResponseSchema(itemSchema)` (never a bare
+  array); single-resource endpoints return the resource directly, no
+  `{ data: ... }` envelope.
+
+**Error codes** — every thrown/validation error serializes to
+`ApiErrorSchema` via the one global `ApiExceptionFilter`
+(`apps/api/src/common/filters/api-exception.filter.ts`). The fixed code
+list: `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`,
+`CONFLICT`, `RATE_LIMITED`, `SERVICE_UNAVAILABLE` (a 503 — currently only
+`GET /health` failing produces this), `INTERNAL_ERROR`. Reuse one of these;
+don't invent a new code in a feature plan without updating this list. A
+deliberately-thrown 4xx `HttpException`'s `message` is shown to the client
+as-is; anything resolving to a 5xx (including a bug that throws one) is
+logged in full and replaced with a generic message before it reaches the
+client — never add detail to a 5xx response body to work around this.
