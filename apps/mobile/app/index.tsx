@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { Text, View } from 'react-native';
 import type { TextStyle } from 'react-native';
 import { createHealthCheck } from '@vehicles-marketplace/validation';
@@ -27,6 +28,9 @@ export default function HomeScreen() {
     <View style={containerStyle}>
       <Text style={titleStyle}>Vehicles Marketplace</Text>
       <Text>{buildHealthMessage(health)}</Text>
+      <Link href="/dev-components" style={{ marginTop: 12, color: '#2151FF' } as TextStyle}>
+        Component demo
+      </Link>
     </View>
   );
 }

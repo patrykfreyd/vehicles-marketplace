@@ -6,7 +6,12 @@ const nextConfig: NextConfig = {
   // transform over them instead of assuming they're already compiled JS.
   // Every workspace package web imports, directly or transitively, needs to
   // be listed here.
-  transpilePackages: ['@vehicles-marketplace/validation', '@vehicles-marketplace/types'],
+  transpilePackages: [
+    '@vehicles-marketplace/validation',
+    '@vehicles-marketplace/types',
+    '@vehicles-marketplace/design-tokens',
+    '@vehicles-marketplace/ui-web',
+  ],
 };
 
 export default nextConfig;

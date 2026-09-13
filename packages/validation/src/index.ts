@@ -17,6 +17,7 @@ export * from './enums/body-style';
 export * from './enums/drivetrain';
 export * from './enums/fuel';
 export * from './enums/transmission';
+export * from './demo/contact-form';
 
 export const HealthCheckSchema = z.object({
   status: z.enum(['ok', 'error']),

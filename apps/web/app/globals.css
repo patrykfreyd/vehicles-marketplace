@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+/*
+ * ui-web ships its component source, not compiled classes (this monorepo's
+ * internal packages have no build step — see next.config.ts's
+ * transpilePackages comment), so Tailwind's automatic class-usage scan
+ * needs to be told explicitly to look there too, not just under this app.
+ */
+@source '../../../packages/ui-web/src';
+
+@import '@vehicles-marketplace/ui-web/tokens.css';
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+}
