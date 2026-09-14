@@ -7,5 +7,25 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "description": "Catalogue-specific shared types. Reserved for Plan 08 (Catalogue Data Model & JSON Schema)."
+  "description": "Catalogue-specific shared types: the Zod schemas for the Make -> Model -> Generation -> Derivative hierarchy and the JSON Schema generated from them (Plan 08).",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "generate:json-schema": "tsx scripts/generate-json-schema.ts"
+  },
+  "dependencies": {
+    "@vehicles-marketplace/validation": "workspace:*",
+    "zod": "4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "@vehicles-marketplace/eslint-config": "workspace:*",
+    "@vehicles-marketplace/tsconfig": "workspace:*",
+    "eslint": "9.39.5",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vite-tsconfig-paths": "6.1.1",
+    "vitest": "5.0.0"
+  }
 }

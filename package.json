@@ -16,6 +16,7 @@
     "test": "turbo run test",
     "generate:openapi": "pnpm --filter @vehicles-marketplace/api generate:openapi",
     "generate:api-client": "pnpm generate:openapi && pnpm --filter @vehicles-marketplace/api-client generate:api-client",
+    "catalogue:generate-json-schema": "pnpm --filter @vehicles-marketplace/catalogue-types generate:json-schema",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",

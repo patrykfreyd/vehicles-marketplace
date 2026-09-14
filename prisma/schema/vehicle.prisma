@@ -2,9 +2,9 @@
 // in Plan 11 once Plan 08's catalogue tables exist to reference — see
 // plans/06-database-schema-migrations-baseline.md §4/§7.
 model Vehicle {
-  id      String @id
-  ownerId String @map("owner_id")
-  owner   User   @relation(fields: [ownerId], references: [id])
+  id        String   @id
+  ownerId   String   @map("owner_id")
+  owner     User     @relation(fields: [ownerId], references: [id])
   // derivativeId intentionally omitted here — added in Plan 11 once Plan
   // 08's catalogue tables exist to reference.
   createdAt DateTime @default(now()) @map("created_at")

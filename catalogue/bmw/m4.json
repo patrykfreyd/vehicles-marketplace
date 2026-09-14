@@ -1,0 +1,77 @@
+{
+  "make": "BMW",
+  "model": "M4",
+  "generations": [
+    {
+      "code": "F82",
+      "productionStartYear": 2014,
+      "productionEndYear": 2020,
+      "aliases": ["BMW F82", "F82 M4", "M4 F82"],
+      "derivatives": [
+        {
+          "name": "M4",
+          "bodyStyle": "COUPE",
+          "doors": 2,
+          "seats": 4,
+          "fuel": "PETROL",
+          "engineCapacityCc": 2979,
+          "cylinders": 6,
+          "configuration": "INLINE_6",
+          "aspiration": "TWIN_TURBO",
+          "engineFamily": "S55",
+          "powerBhp": 425,
+          "torqueNm": 550,
+          "transmissions": ["MANUAL", "DCT"],
+          "drivetrain": "RWD",
+          "aliases": ["F82 M4"]
+        },
+        {
+          "name": "M4 Competition",
+          "bodyStyle": "COUPE",
+          "doors": 2,
+          "seats": 4,
+          "fuel": "PETROL",
+          "engineCapacityCc": 2979,
+          "cylinders": 6,
+          "configuration": "INLINE_6",
+          "aspiration": "TWIN_TURBO",
+          "engineFamily": "S55",
+          "powerBhp": 444,
+          "torqueNm": 550,
+          "drivetrain": "RWD",
+          "aliases": ["F82 M4 Competition"]
+        }
+      ]
+    },
+    {
+      "code": "G82",
+      "productionStartYear": 2021,
+      "aliases": ["BMW G82", "G82 M4", "M4 G82"],
+      "derivatives": [
+        {
+          "name": "M4 Competition xDrive",
+          "bodyStyle": "COUPE",
+          "doors": 2,
+          "seats": 4,
+          "fuel": "PETROL",
+          "engineCapacityCc": 2993,
+          "cylinders": 6,
+          "configuration": "INLINE_6",
+          "aspiration": "TWIN_TURBO",
+          "engineFamily": "S58",
+          "powerBhp": 503,
+          "torqueNm": 650,
+          "transmissions": ["AUTOMATIC"],
+          "drivetrain": "AWD",
+          "drivetrainManufacturerName": "M xDrive",
+          "zeroToSixtyTwoSeconds": 3.5,
+          "topSpeedMph": 180,
+          "status": "SOURCE_CONFIRMED",
+          "confidence": 0.98,
+          "reviewed": true,
+          "aliases": ["M4 Comp xDrive", "M4 Competition AWD", "G82 Comp xDrive"]
+        }
+      ]
+    }
+  ]
+}
