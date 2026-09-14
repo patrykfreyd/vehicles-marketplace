@@ -34,7 +34,14 @@ const ENGINE_OPTIONAL_FIELDS = [
 
 const PERFORMANCE_OPTIONAL_FIELDS = ['zeroToSixtyTwoSeconds', 'topSpeedMph'] as const;
 
-const COMPLETENESS_FIELDS = [...ENGINE_OPTIONAL_FIELDS, ...PERFORMANCE_OPTIONAL_FIELDS] as const;
+// Exported (not just a local const) so plans/09-catalogue-import-tooling-admin.md's
+// importer can report exactly *which* fields are missing next to a
+// derivative's completeness percentage, using the same field set this
+// formula scores against rather than a second, driftable list.
+export const COMPLETENESS_FIELDS = [
+  ...ENGINE_OPTIONAL_FIELDS,
+  ...PERFORMANCE_OPTIONAL_FIELDS,
+] as const;
 
 export type CompletenessInput = Pick<Derivative, (typeof COMPLETENESS_FIELDS)[number]>;
 
@@ -50,4 +57,9 @@ export function computeCompletenessScore(derivative: CompletenessInput): number 
     isFieldPresent(derivative[field]),
   ).length;
   return Math.round((100 * presentCount) / COMPLETENESS_FIELDS.length);
+}
+
+/** The subset of `COMPLETENESS_FIELDS` this derivative is missing — what a "missing-field warning" (Plan 09 §7) lists. */
+export function missingCompletenessFields(derivative: CompletenessInput): string[] {
+  return COMPLETENESS_FIELDS.filter((field) => !isFieldPresent(derivative[field]));
 }

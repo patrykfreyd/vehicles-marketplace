@@ -68,6 +68,18 @@ export const EnvSchema = z.object({
     .default('false')
     .transform((value) => value === 'true'),
   EMAIL_FROM: z.string().default('Vehicles Marketplace <no-reply@example.co.uk>'),
+
+  // --- Plan 09 (Catalogue Import Tooling & Admin) ---
+  // `catalogue enrich`'s AiClient wrapper (§3) — provisionally OpenAI, kept
+  // behind that interface so swapping providers later (Plan 14 AI Search)
+  // only touches the one concrete implementation. No default: `enrich`
+  // fails loudly asking for a key rather than silently calling out with an
+  // empty one; every other command works with this unset.
+  OPENAI_API_KEY: z.string().default(''),
+  // Cheapest model that can reliably follow the structured-output/schema
+  // constraints `enrich` needs — overridable without a code change once a
+  // cheaper/better option exists.
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

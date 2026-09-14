@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DerivativeSchema } from './derivative';
+import { DerivativeRecordSchema, DerivativeSchema } from './derivative';
 
 const baseDerivative = {
   id: 'bmw-m4-g82-competition-xdrive',
@@ -56,5 +56,24 @@ describe('DerivativeSchema', () => {
   it('rejects a missing required field', () => {
     const { drivetrain: _drivetrain, ...withoutDrivetrain } = baseDerivative;
     expect(DerivativeSchema.safeParse(withoutDrivetrain).success).toBe(false);
+  });
+});
+
+describe('DerivativeRecordSchema', () => {
+  it('accepts a Derivative with its Prisma-managed timestamps', () => {
+    const result = DerivativeRecordSchema.safeParse({
+      ...baseDerivative,
+      createdAt: '2026-09-14T00:00:00.000Z',
+      updatedAt: '2026-09-14T00:00:00.000Z',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a record missing updatedAt', () => {
+    const result = DerivativeRecordSchema.safeParse({
+      ...baseDerivative,
+      createdAt: '2026-09-14T00:00:00.000Z',
+    });
+    expect(result.success).toBe(false);
   });
 });
