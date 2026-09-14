@@ -97,6 +97,13 @@ enum CatalogueEntityType {
   MANUFACTURER_COLOUR
 }
 
+// Plan 09 (Catalogue Import Tooling & Admin) §4 — audit trail for imports
+// and the review queue the Catalogue Admin (§7) reads from.
+enum IssueSeverity {
+  WARNING
+  ERROR
+}
+
 // Catalogue entities use stable, human-readable slug IDs, not prefixed
 // ULIDs — see plans/03-shared-types-validation.md §5: curated, low-volume,
 // and the slug itself is useful in URLs/logs (idea doc §29).
@@ -172,6 +179,8 @@ model Derivative {
   reviewed          Boolean         @default(false)
   completenessScore Int             @default(0) @map("completeness_score")
 
+  sources DerivativeSource[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -221,4 +230,74 @@ model CatalogueAlias {
   @@index([entityType, entityId])
   @@index([alias])
   @@map("catalogue_aliases")
+}
+
+// --- Plan 09 (Catalogue Import Tooling & Admin) §4 ---
+// Audit trail for `catalogue import` runs plus the Admin's review queue
+// (§7): the CLI's console output alone isn't enough for a reviewer working
+// the Admin UI days after an import ran.
+
+model CatalogueSource {
+  id          String   @id
+  name        String // "BMW UK press pack 2023"
+  url         String?
+  licenseNote String?  @map("license_note")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  derivatives DerivativeSource[]
+
+  @@map("catalogue_sources")
+}
+
+// §4's own CatalogueSource snippet has no relation to a Derivative — that
+// table is a reusable pool of sources ("BMW UK press pack 2023" can back
+// several derivatives), not a per-derivative attachment. §7 needs "source
+// attachment" per derivative and §6's REVIEW_REQUIRED -> SOURCE_CONFIRMED
+// transition fires when "admin attaches a CatalogueSource" to one — neither
+// is possible without a join, so this many-to-many table is added beyond
+// §4's literal snippet to make that concrete.
+model DerivativeSource {
+  id           String          @id
+  derivativeId String          @map("derivative_id")
+  derivative   Derivative      @relation(fields: [derivativeId], references: [id])
+  sourceId     String          @map("source_id")
+  source       CatalogueSource @relation(fields: [sourceId], references: [id])
+  createdAt    DateTime        @default(now()) @map("created_at")
+
+  @@unique([derivativeId, sourceId])
+  @@index([derivativeId])
+  @@map("derivative_sources")
+}
+
+model CatalogueImport {
+  id             String   @id
+  manufacturerId String   @map("manufacturer_id")
+  filePath       String   @map("file_path")
+  importedBy     String?  @map("imported_by") // User.id, nullable for CLI-only runs
+  recordsCreated Int      @map("records_created")
+  recordsUpdated Int      @map("records_updated")
+  warningsCount  Int      @map("warnings_count")
+  errorsCount    Int      @map("errors_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  issues CatalogueValidationIssue[]
+
+  @@index([manufacturerId])
+  @@map("catalogue_imports")
+}
+
+model CatalogueValidationIssue {
+  id         String              @id
+  importId   String              @map("import_id")
+  import     CatalogueImport     @relation(fields: [importId], references: [id])
+  entityType CatalogueEntityType @map("entity_type")
+  entityId   String              @map("entity_id")
+  severity   IssueSeverity
+  message    String // "G82 M4 CS missing torque"
+  resolved   Boolean             @default(false)
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([resolved])
+  @@map("catalogue_validation_issues")
 }

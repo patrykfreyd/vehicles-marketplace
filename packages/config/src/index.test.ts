@@ -23,8 +23,14 @@ describe('loadEnv', () => {
       SMTP_PASSWORD: '',
       SMTP_SECURE: false,
       EMAIL_FROM: 'Vehicles Marketplace <no-reply@example.co.uk>',
+      OPENAI_API_KEY: '',
+      OPENAI_MODEL: 'gpt-4o-mini',
       ...validEnv,
     });
+  });
+
+  it('passes through an OPENAI_MODEL override', () => {
+    expect(loadEnv({ ...validEnv, OPENAI_MODEL: 'gpt-5-nano' }).OPENAI_MODEL).toBe('gpt-5-nano');
   });
 
   it('requires AUTH_SECRET', () => {

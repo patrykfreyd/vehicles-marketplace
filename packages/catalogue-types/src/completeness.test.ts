@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeCompletenessScore } from './completeness';
+import { computeCompletenessScore, missingCompletenessFields } from './completeness';
 
 describe('computeCompletenessScore', () => {
   it('reproduces the idea doc §33 100% example (BMW G82 M4 Competition xDrive)', () => {
@@ -64,5 +64,41 @@ describe('computeCompletenessScore', () => {
       topSpeedMph: undefined,
     });
     expect(score).toBe(0);
+  });
+});
+
+describe('missingCompletenessFields', () => {
+  it('lists exactly the fields the 70%-complete example is missing', () => {
+    expect(
+      missingCompletenessFields({
+        engineCapacityCc: 1968,
+        cylinders: 4,
+        configuration: 'INLINE_4',
+        aspiration: 'TURBO',
+        engineFamily: undefined,
+        powerBhp: 148,
+        torqueNm: undefined,
+        transmissions: ['AUTOMATIC'],
+        zeroToSixtyTwoSeconds: undefined,
+        topSpeedMph: 130,
+      }),
+    ).toEqual(['engineFamily', 'torqueNm', 'zeroToSixtyTwoSeconds']);
+  });
+
+  it('returns an empty array for a fully complete record', () => {
+    expect(
+      missingCompletenessFields({
+        engineCapacityCc: 2993,
+        cylinders: 6,
+        configuration: 'INLINE_6',
+        aspiration: 'TWIN_TURBO',
+        engineFamily: 'S58',
+        powerBhp: 503,
+        torqueNm: 650,
+        transmissions: ['AUTOMATIC'],
+        zeroToSixtyTwoSeconds: 3.5,
+        topSpeedMph: 180,
+      }),
+    ).toEqual([]);
   });
 });

@@ -68,3 +68,17 @@ export const DerivativeSchema = z.object({
 });
 
 export type Derivative = z.infer<typeof DerivativeSchema>;
+
+/**
+ * plans/09-catalogue-import-tooling-admin.md §7 — the Catalogue Admin's
+ * derivative detail/edit screen and the API responses backing it need the
+ * two Prisma-managed timestamps `DerivativeSchema` deliberately omits (see
+ * this file's own top comment for why); this is that same schema with them
+ * added back, for read paths only — nothing accepts these as input.
+ */
+export const DerivativeRecordSchema = DerivativeSchema.extend({
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type DerivativeRecord = z.infer<typeof DerivativeRecordSchema>;

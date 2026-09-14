@@ -3,21 +3,29 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node -r ts-node/register src/cli.ts",
+    "start": "dotenv -e ../../.env.local -- tsx src/cli.ts",
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@vehicles-marketplace/validation": "workspace:*"
+    "@vehicles-marketplace/catalogue-types": "workspace:*",
+    "@vehicles-marketplace/config": "workspace:*",
+    "@vehicles-marketplace/db": "workspace:*",
+    "@vehicles-marketplace/utils": "workspace:*",
+    "@vehicles-marketplace/validation": "workspace:*",
+    "commander": "15.0.0",
+    "openai": "7.15.0",
+    "zod": "4.6.2"
   },
   "devDependencies": {
     "@types/node": "22.20.2",
     "@vehicles-marketplace/eslint-config": "workspace:*",
     "@vehicles-marketplace/tsconfig": "workspace:*",
+    "dotenv-cli": "11.0.0",
     "eslint": "9.39.5",
-    "ts-node": "10.9.2",
+    "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "5.0.0"

@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
+    "@vehicles-marketplace/api-client": "workspace:*",
+    "@vehicles-marketplace/catalogue-types": "workspace:*",
     "@vehicles-marketplace/design-tokens": "workspace:*",
     "@vehicles-marketplace/ui-web": "workspace:*",
     "@vehicles-marketplace/utils": "workspace:*",

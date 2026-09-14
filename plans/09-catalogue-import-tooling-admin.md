@@ -1,6 +1,6 @@
 # Plan 09 — Catalogue Import Tooling & Admin
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 08 (catalogue schema, Zod schemas, JSON Schema), Plan 05
 (Nest module template, generated API client), Plan 07 (`isAdmin` guard),
 Plan 04 (UI components the Admin screens are built from)
@@ -204,33 +204,136 @@ by the Admin UI through the generated client (Plan 05 §7).
 
 ## 9. Acceptance criteria
 
-- [ ] `catalogue validate` and `catalogue import` succeed against Plan
+- [x] `catalogue validate` and `catalogue import` succeed against Plan
       08's BMW M4 fixture, producing a `CatalogueImport` row and a report
-      matching the idea doc's example format.
-- [ ] `catalogue report bmw` shows the correct completeness percentage per
-      generation, computed via Plan 08 §8's formula.
-- [ ] `catalogue find-duplicates` correctly flags an intentionally
+      matching the idea doc's example format. Verified for real: `pnpm
+      catalogue validate catalogue/bmw/m4.json` → `PASS`; `pnpm catalogue
+      import bmw` → `BMW M4 — 2 generations, 3 derivatives, ✓ F82, ✓ G82,
+      warnings: 5, errors: 0` against live Postgres.
+- [x] `catalogue report bmw` shows the correct completeness percentage per
+      generation, computed via Plan 08 §8's formula. Verified for real:
+      `BMW 83% / M4 Warning (83%)` immediately after import, matching the
+      fixture's known-incomplete F82 derivatives.
+- [x] `catalogue find-duplicates` correctly flags an intentionally
       duplicated derivative added to a test fixture, without auto-merging
-      it.
-- [ ] `catalogue enrich` produces a schema-valid `AI_DRAFT` file that is
+      it — proven in `importer.test.ts`/`catalogue-admin.service.test.ts`
+      (a deliberately near-identical second entry is grouped, never
+      written to as APPROVED/merged automatically).
+- [x] `catalogue enrich` produces a schema-valid `AI_DRAFT` file that is
       **not** importable as `APPROVED` without going through the review
-      steps in §6.
-- [ ] The Admin UI, as a non-admin user, is fully inaccessible (403/
+      steps in §6 — `enrich.command.ts` strips any AI-supplied `status`
+      before validating, and `catalogue import` refuses `APPROVED` from
+      any file regardless (`import-rules.ts`'s `resolveImportStatus`).
+- [x] The Admin UI, as a non-admin user, is fully inaccessible (403/
       redirect); as an admin, it lists BMW, drills into the M4 G82
       derivative, shows any open validation issues, and an approve action
       correctly flips `status` to `APPROVED` with a success toast.
-- [ ] Only `APPROVED` derivatives are returned by a basic "list published
+      Verified for real against a live server: unauthenticated →
+      `401 UNAUTHORIZED`; authenticated non-admin → `403 FORBIDDEN`
+      (`AdminGuard`); admin → manufacturer list includes BMW, drills into
+      `bmw-m4-g82-competition-xdrive` (`SOURCE_CONFIRMED`), `POST
+      .../approve` flips it to `APPROVED`. The web layout's redirect is
+      the client-side UX half; `AdminGuard` on every `catalogue-admin`
+      route is the actual enforcement.
+- [x] Only `APPROVED` derivatives are returned by a basic "list published
       catalogue" query used as this plan's stand-in for Plan 13's future
-      search integration.
-- [ ] `pnpm lint`/`typecheck`/`build`/`test` remain green.
+      search integration. Verified for real: `GET /api/v1/catalogue/derivatives`
+      returned empty before the approve step above, and exactly the one
+      newly-`APPROVED` derivative after it.
+- [x] `pnpm lint`/`typecheck`/`build`/`test` remain green (verified with
+      real Postgres/Redis in Docker, so every DB-touching integration test
+      — `catalogue-cli`'s importer, `catalogue-admin`'s service, the
+      public catalogue listing — ran for real rather than skipping).
 
-## 10. Open questions for you
+## 10. Open questions for you — resolved 2026-09
 
-1. Confirm deferring bulk open-dataset import (§3) in favor of starting
-   BMW directly with hand+AI authoring — or do you already have a
-   specific open dataset in mind that changes this calculus?
-2. Confirm the Admin lives inside `apps/web` behind `isAdmin`, rather than
-   as a separate internal-only application.
-3. Any specific AI provider you want `AiClient` built against first, or
-   should this plan pick one provisionally (revisited when Plan 14
-   designs AI Search properly)?
+1. **Confirmed** — bulk open-dataset bootstrap deferred; BMW authored
+   directly via the hand+AI-assisted JSON this plan's tooling produces, no
+   specific external dataset introduced.
+2. **Confirmed** — the Catalogue Admin lives inside `apps/web/app/admin`,
+   gated by `isAdmin` via `AdminGuard` on every `catalogue-admin` API route
+   plus a client-side redirect in `apps/web/app/admin/layout.tsx`; not a
+   separate application.
+3. **OpenAI**, provisionally — `apps/catalogue-cli/src/lib/openai-client.ts`,
+   selected as "cheapest model that will work for us" via `OPENAI_MODEL`
+   (defaults to `gpt-4o-mini`, `.env.example`/`packages/config`), kept
+   behind the provider-agnostic `AiClient` interface (§3) so Plan 14 can
+   swap or share the underlying provider later without touching
+   `enrich.command.ts`.
+
+## 11. Deviations from this plan worth flagging
+
+- **`DerivativeSource` (a `Derivative` ↔ `CatalogueSource` join table) was
+  added beyond §4's literal Prisma snippet.** As written, `CatalogueSource`
+  has no relation to `Derivative` at all — it's a reusable pool of citable
+  sources, not a per-derivative attachment — but §6's REVIEW_REQUIRED →
+  SOURCE_CONFIRMED transition ("admin attaches a CatalogueSource") and §7's
+  "source attachment" both require exactly that link. See
+  `prisma/schema/catalogue.prisma`'s comment on `DerivativeSource` for the
+  full reasoning.
+- **§7's "Reject" action isn't in §6's own forward-only state diagram.**
+  Modeled as a transition to `DEPRECATED` (the diagram's own terminal
+  state, "this data will not be used") rather than inventing a new status —
+  see `CatalogueAdminService.rejectDerivative`'s comment.
+- **§2/§34's "UK prevalence × marketplace demand × incompleteness" priority
+  formula is `100 - averageCompleteness` for now** — no prevalence/demand
+  dataset exists yet (§3 defers bulk external data), so incompleteness is
+  the only computable factor. `ManufacturerSummarySchema.priorityScore` is
+  a separate field from `averageCompleteness` (not just its inverse read
+  off the same number), so a later plan can fold in real multipliers
+  without an API shape change.
+- **`catalogue enrich`'s OpenAI integration uses plain `response_format:
+  json_object` mode, not OpenAI's stricter JSON-Schema structured-output
+  mode.** That mode requires every property `required` with
+  `additionalProperties: false`, which doesn't map cleanly onto
+  `DerivativeStagingSchema`'s mostly-optional Level 2 fields. The actual
+  safety net is unconditional either way — idea doc §21's "AI output must
+  pass through the same validation, not a shortcut": every candidate is
+  re-validated against that exact schema in `enrich.command.ts` regardless
+  of response mode. See `openai-client.ts`'s comment.
+- **`apps/catalogue-cli` resolves `catalogue/` paths against the repo root,
+  not `process.cwd()`.** `pnpm --filter @vehicles-marketplace/catalogue-cli
+  start` (and the root `pnpm catalogue` alias) sets cwd to
+  `apps/catalogue-cli`, not the repo root the plan's own usage examples
+  (`catalogue validate catalogue/bmw/m4.json`) assume — `findRepoRoot` in
+  `lib/catalogue-files.ts` walks up looking for `pnpm-workspace.yaml`
+  instead.
+- **`catalogue-cli`'s entrypoint script is `tsx`, not `node -r
+  ts-node/register`** (Plan 05/01's original pattern, still used by
+  `apps/api`/`apps/worker`) — this machine's Node 24 misparses
+  `ts-node/register`'d `.ts` files with no `"type"` in `package.json` as
+  native ESM, throwing `ERR_MODULE_NOT_FOUND` on extensionless relative
+  imports; `tsx`'s loader hook doesn't hit this regardless of Node version.
+  Only touched here since this plan rewrote the CLI's entrypoint wholesale
+  — existing `ts-node/register` entrypoints elsewhere weren't changed.
+- **Every `@ZodResponse()` in the new `catalogue`/`catalogue-admin` modules
+  passes an explicit `status: 200`.** Omitting it (as `nestjs-zod`'s own
+  types allow) makes `@nestjs/swagger` register the response under
+  OpenAPI's `default` key instead of `200`; `openapi-typescript`/
+  `openapi-fetch` then can't distinguish a success from an error response,
+  collapsing the generated client's `data`/`error` types together. No
+  existing module in the repo had hit this (Health's endpoint predates
+  `@ZodResponse` and uses `@ApiOkResponse` directly).
+- **The OpenAPI spec still documents no error response for any route**
+  (pre-existing gap, not introduced here — `ApiExceptionFilter` shapes
+  every failure at runtime, never per-route Swagger metadata), so the
+  generated client's `error` field types as `never` for every call. The
+  Catalogue Admin UI is the first real network consumer in `apps/web`
+  (every earlier screen used local helpers only) and is the first place
+  this surfaced — worked around locally with an explained `as ApiError`
+  cast rather than fixed at the source, which is a bigger, repo-wide Plan
+  05 follow-up.
+- **Zod's `.partial()` on a field that already has `.default()`
+  (`specialEdition`, `transmissions`) infers as optional in the local
+  `UpdateDerivativeRequestSchema`-derived TypeScript type, but
+  `nestjs-zod`'s OpenAPI generation marks the same field `required`.** The
+  derivative edit form (`apps/web/.../derivatives/[derivativeId]/page.tsx`)
+  spells both fields out explicitly with a fallback before sending the
+  `PATCH` request body, rather than fighting the schema generation
+  pipeline.
+- **Integration tests that hit a real Postgres (`catalogue-cli`'s
+  importer, `catalogue-admin`'s/`catalogue`'s services) follow Plan 05's
+  `WORKER_TEST_HAS_REAL_INFRA` pattern** (`CATALOGUE_CLI_TEST_HAS_REAL_INFRA`,
+  `API_TEST_HAS_REAL_DB`) — skip gracefully without `DATABASE_URL` set,
+  run for real against it otherwise (CI's `postgres` service, per Plan 05's
+  `ci.yml` deviation).

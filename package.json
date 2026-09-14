@@ -17,6 +17,7 @@
     "generate:openapi": "pnpm --filter @vehicles-marketplace/api generate:openapi",
     "generate:api-client": "pnpm generate:openapi && pnpm --filter @vehicles-marketplace/api-client generate:api-client",
     "catalogue:generate-json-schema": "pnpm --filter @vehicles-marketplace/catalogue-types generate:json-schema",
+    "catalogue": "pnpm --filter @vehicles-marketplace/catalogue-cli start",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",

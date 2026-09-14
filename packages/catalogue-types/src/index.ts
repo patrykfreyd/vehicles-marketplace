@@ -14,9 +14,14 @@ export * from './enums/catalogue-entity-type';
 export * from './enums/catalogue-status';
 export * from './enums/colour-family';
 export * from './enums/engine-configuration';
+export * from './enums/issue-severity';
 
 export * from './entities/catalogue-alias';
+export * from './entities/catalogue-import';
+export * from './entities/catalogue-source';
+export * from './entities/catalogue-validation-issue';
 export * from './entities/derivative';
+export * from './entities/derivative-source';
 export * from './entities/equipment';
 export * from './entities/generation';
 export * from './entities/make';
@@ -26,4 +31,11 @@ export * from './entities/model';
 
 export * from './staging/catalogue-model-file';
 
+export * from './api/derivative-detail';
+export * from './api/duplicate-group';
+export * from './api/manufacturer-detail';
+export * from './api/manufacturer-summary';
+export * from './api/published-derivative';
+
 export * from './completeness';
+export * from './duplicates';

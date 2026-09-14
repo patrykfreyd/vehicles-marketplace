@@ -4,6 +4,198 @@
  */
 
 export interface paths {
+  '/api/v1/catalogue/derivatives': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CatalogueController_listDerivatives'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/manufacturers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CatalogueAdminController_listManufacturers'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/manufacturers/{makeId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CatalogueAdminController_getManufacturer'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/manufacturers/{makeId}/duplicates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CatalogueAdminController_getDuplicates'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['CatalogueAdminController_getDerivative'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['CatalogueAdminController_updateDerivative'];
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}/approve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CatalogueAdminController_approveDerivative'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}/reject': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CatalogueAdminController_rejectDerivative'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}/merge': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CatalogueAdminController_mergeDerivative'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}/aliases': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CatalogueAdminController_addAlias'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/aliases/{aliasId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['CatalogueAdminController_removeAlias'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivatives/{id}/sources': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['CatalogueAdminController_addSource'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/catalogue-admin/derivative-sources/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['CatalogueAdminController_removeSource'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/health': {
     parameters: {
       query?: never;
@@ -56,6 +248,297 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    PublishedDerivativePageDto_Output: {
+      items: {
+        id: string;
+        generationId: string;
+        name: string;
+        /** @default false */
+        specialEdition: boolean;
+        /** @enum {string} */
+        bodyStyle:
+          'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+        doors?: number;
+        seats?: number;
+        /** @enum {string} */
+        fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+        engineCapacityCc?: number;
+        cylinders?: number;
+        /** @enum {string} */
+        configuration?:
+          | 'INLINE_3'
+          | 'INLINE_4'
+          | 'INLINE_5'
+          | 'INLINE_6'
+          | 'V6'
+          | 'V8'
+          | 'V10'
+          | 'V12'
+          | 'FLAT_4'
+          | 'FLAT_6'
+          | 'ELECTRIC_MOTOR';
+        /** @enum {string} */
+        aspiration?: 'NATURALLY_ASPIRATED' | 'TURBO' | 'TWIN_TURBO' | 'SUPERCHARGED' | 'ELECTRIC';
+        engineFamily?: string;
+        powerBhp?: number;
+        torqueNm?: number;
+        /** @default [] */
+        transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+        /** @enum {string} */
+        drivetrain: 'FWD' | 'RWD' | 'AWD';
+        drivetrainManufacturerName?: string;
+        zeroToSixtyTwoSeconds?: number;
+        topSpeedMph?: number;
+        /**
+         * @default AI_DRAFT
+         * @enum {string}
+         */
+        status:
+          | 'IMPORTED'
+          | 'AI_DRAFT'
+          | 'REVIEW_REQUIRED'
+          | 'SOURCE_CONFIRMED'
+          | 'APPROVED'
+          | 'DEPRECATED';
+        confidence?: number;
+        /** @default false */
+        reviewed: boolean;
+        /** @default 0 */
+        completenessScore: number;
+        /** @default [] */
+        aliases: string[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        makeName: string;
+        modelName: string;
+        generationCode: string;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    ManufacturerSummaryPageDto_Output: {
+      items: {
+        id: string;
+        name: string;
+        modelCount: number;
+        derivativeCount: number;
+        averageCompleteness: number;
+        priorityScore: number;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    ManufacturerDetailDto_Output: {
+      id: string;
+      name: string;
+      models: {
+        id: string;
+        name: string;
+        generations: {
+          id: string;
+          code: string;
+          productionStartYear: number;
+          productionEndYear?: number;
+          derivativeCount: number;
+          completeCount: number;
+          inProgressCount: number;
+          warningCount: number;
+          averageCompleteness: number;
+          derivatives: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status:
+              | 'IMPORTED'
+              | 'AI_DRAFT'
+              | 'REVIEW_REQUIRED'
+              | 'SOURCE_CONFIRMED'
+              | 'APPROVED'
+              | 'DEPRECATED';
+            completenessScore: number;
+            hasOpenIssue: boolean;
+          }[];
+        }[];
+      }[];
+    };
+    DuplicateGroupPageDto_Output: {
+      items: {
+        key: string;
+        items: {
+          id: string;
+          name: string;
+          generationCode: string;
+          bodyStyle: string;
+          fuel: string;
+          drivetrain: string;
+          powerBhp?: number | null;
+        }[];
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    DerivativeDetailDto_Output: {
+      id: string;
+      generationId: string;
+      name: string;
+      /** @default false */
+      specialEdition: boolean;
+      /** @enum {string} */
+      bodyStyle:
+        'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+      doors?: number;
+      seats?: number;
+      /** @enum {string} */
+      fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+      engineCapacityCc?: number;
+      cylinders?: number;
+      /** @enum {string} */
+      configuration?:
+        | 'INLINE_3'
+        | 'INLINE_4'
+        | 'INLINE_5'
+        | 'INLINE_6'
+        | 'V6'
+        | 'V8'
+        | 'V10'
+        | 'V12'
+        | 'FLAT_4'
+        | 'FLAT_6'
+        | 'ELECTRIC_MOTOR';
+      /** @enum {string} */
+      aspiration?: 'NATURALLY_ASPIRATED' | 'TURBO' | 'TWIN_TURBO' | 'SUPERCHARGED' | 'ELECTRIC';
+      engineFamily?: string;
+      powerBhp?: number;
+      torqueNm?: number;
+      /** @default [] */
+      transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+      /** @enum {string} */
+      drivetrain: 'FWD' | 'RWD' | 'AWD';
+      drivetrainManufacturerName?: string;
+      zeroToSixtyTwoSeconds?: number;
+      topSpeedMph?: number;
+      /**
+       * @default AI_DRAFT
+       * @enum {string}
+       */
+      status:
+        | 'IMPORTED'
+        | 'AI_DRAFT'
+        | 'REVIEW_REQUIRED'
+        | 'SOURCE_CONFIRMED'
+        | 'APPROVED'
+        | 'DEPRECATED';
+      confidence?: number;
+      /** @default false */
+      reviewed: boolean;
+      /** @default 0 */
+      completenessScore: number;
+      /** @default [] */
+      aliases: string[];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      makeId: string;
+      makeName: string;
+      modelId: string;
+      modelName: string;
+      generationCode: string;
+      issues: {
+        id: string;
+        importId: string;
+        /** @enum {string} */
+        entityType:
+          'MAKE' | 'MODEL' | 'GENERATION' | 'DERIVATIVE' | 'ENGINE_FAMILY' | 'MANUFACTURER_COLOUR';
+        entityId: string;
+        /** @enum {string} */
+        severity: 'WARNING' | 'ERROR';
+        message: string;
+        /** @default false */
+        resolved: boolean;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+      sourceLinks: {
+        id: string;
+        derivativeId: string;
+        sourceId: string;
+        /** Format: date-time */
+        createdAt: string;
+        source?: {
+          id: string;
+          name: string;
+          /** Format: uri */
+          url?: string;
+          licenseNote?: string;
+          /** Format: date-time */
+          createdAt: string;
+        };
+      }[];
+      aliasRecords: {
+        id: string;
+        alias: string;
+      }[];
+    };
+    UpdateDerivativeRequestDto: {
+      name?: string;
+      /** @default false */
+      specialEdition: boolean;
+      /** @enum {string} */
+      bodyStyle?:
+        'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+      doors?: number;
+      seats?: number;
+      /** @enum {string} */
+      fuel?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+      engineCapacityCc?: number;
+      cylinders?: number;
+      /** @enum {string} */
+      configuration?:
+        | 'INLINE_3'
+        | 'INLINE_4'
+        | 'INLINE_5'
+        | 'INLINE_6'
+        | 'V6'
+        | 'V8'
+        | 'V10'
+        | 'V12'
+        | 'FLAT_4'
+        | 'FLAT_6'
+        | 'ELECTRIC_MOTOR';
+      /** @enum {string} */
+      aspiration?: 'NATURALLY_ASPIRATED' | 'TURBO' | 'TWIN_TURBO' | 'SUPERCHARGED' | 'ELECTRIC';
+      engineFamily?: string;
+      powerBhp?: number;
+      torqueNm?: number;
+      /** @default [] */
+      transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+      /** @enum {string} */
+      drivetrain?: 'FWD' | 'RWD' | 'AWD';
+      drivetrainManufacturerName?: string;
+      zeroToSixtyTwoSeconds?: number;
+      topSpeedMph?: number;
+    };
+    MergeDerivativesRequestDto: {
+      duplicateId: string;
+    };
+    AddAliasRequestDto: {
+      alias: string;
+    };
+    AddSourceRequestDto: {
+      name: string;
+      /** Format: uri */
+      url?: string;
+      licenseNote?: string;
+    };
     HealthCheckResponseDto: {
       /** @enum {string} */
       status: 'ok' | 'error' | 'degraded' | 'shutting_down';
@@ -93,6 +576,292 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  CatalogueController_listDerivatives: {
+    parameters: {
+      query?: {
+        page?: number;
+        pageSize?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PublishedDerivativePageDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_listManufacturers: {
+    parameters: {
+      query?: {
+        sort?: 'priority' | 'completeness' | 'name';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ManufacturerSummaryPageDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_getManufacturer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        makeId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ManufacturerDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_getDuplicates: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        makeId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DuplicateGroupPageDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_getDerivative: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_updateDerivative: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateDerivativeRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_approveDerivative: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_rejectDerivative: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_mergeDerivative: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MergeDerivativesRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_addAlias: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AddAliasRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_removeAlias: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aliasId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  CatalogueAdminController_addSource: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AddSourceRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeDetailDto_Output'];
+        };
+      };
+    };
+  };
+  CatalogueAdminController_removeSource: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   HealthController_check: {
     parameters: {
       query?: never;
