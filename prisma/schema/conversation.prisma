@@ -1,0 +1,10 @@
+// Stub; full fields (conversation_members, read receipts, attachments)
+// land in Plan 25 — see
+// plans/06-database-schema-migrations-baseline.md §4/§7.
+model Conversation {
+  id        String    @id
+  createdAt DateTime  @default(now()) @map("created_at")
+  messages  Message[]
+
+  @@map("conversations")
+}

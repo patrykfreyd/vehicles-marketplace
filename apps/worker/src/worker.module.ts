@@ -11,11 +11,13 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { loadEnv, type Env } from '@vehicles-marketplace/config';
+import { DbModule } from './common/db/db.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: loadEnv }),
+    DbModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => ({

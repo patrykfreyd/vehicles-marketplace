@@ -7,6 +7,12 @@ allowBuilds:
   # skipped, not needed for anything functional.
   '@scarf/scarf': false
   esbuild: true
+  # Prisma's postinstall downloads its query-engine binary; @prisma/client's
+  # postinstall runs `prisma generate` so a fresh `pnpm install` always
+  # leaves a usable generated client (see plans/06-database-schema-migrations-baseline.md).
+  prisma: true
+  '@prisma/client': true
+  '@prisma/engines': true
   # Native acceleration for msgpackr (bullmq's job (de)serialization) —
   # built for real perf; msgpackr falls back to pure JS either way if this
   # is ever turned off.

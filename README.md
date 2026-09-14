@@ -37,8 +37,9 @@ see the Hybrid/Full-Docker commands under [Environments](#environments)
 below.
 
 This is the "Hybrid" local mode — see [Environments](#environments) below
-for Postgres/Redis (needed once Plan 06 lands) and the alternative "Full
-Docker" mode.
+for Postgres/Redis and the alternative "Full Docker" mode, and run
+`pnpm db:migrate:dev && pnpm db:seed` once Postgres is up before `api`
+can serve anything real.
 
 ## Environments
 
@@ -86,6 +87,11 @@ app/package that defines it (and skips the ones that don't):
 | `pnpm generate:api-client` | Regenerates `packages/api-client` from `apps/api`'s live routes (see [`plans/05-backend-api-foundation.md`](plans/05-backend-api-foundation.md) §7) — run after changing a Zod schema or an endpoint |
 | `pnpm format`              | Formats the whole repo with Prettier                                                                                                                                                                 |
 | `pnpm format:check`        | Checks formatting without writing                                                                                                                                                                    |
+| `pnpm db:migrate:dev`      | Local-only: creates a migration from a `prisma/schema/*.prisma` change and applies it                                                                                                                |
+| `pnpm db:migrate:deploy`   | Applies already-committed migrations with no schema diffing — what Test/Production run (see [`docs/deployment-runbook.md`](docs/deployment-runbook.md))                                              |
+| `pnpm db:generate`         | Regenerates the Prisma client from the current schema without touching migrations                                                                                                                    |
+| `pnpm db:seed`             | Runs `prisma/seed/index.ts` (idempotent — see [`plans/06-database-schema-migrations-baseline.md`](plans/06-database-schema-migrations-baseline.md) §5)                                               |
+| `pnpm db:studio`           | Opens Prisma Studio against the database `DATABASE_URL` points at                                                                                                                                    |
 
 A pre-commit hook (Husky + lint-staged) auto-fixes lint/format issues on
 staged files; a commit-msg hook checks Conventional Commits and warns
@@ -95,7 +101,7 @@ without blocking (see §8 of the plan for why, and when to flip that).
 
 ```text
 apps/            web, mobile, api, worker, catalogue-cli
-packages/        shared types, validation, config, utils, design-tokens,
+packages/        shared types, validation, config, db, utils, design-tokens,
                  ui-web, ui-mobile, api-client, catalogue-types,
                  analytics-types, eslint-config, prettier-config, tsconfig
 catalogue/       JSON staging data (Plan 08/09)

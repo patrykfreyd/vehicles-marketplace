@@ -1,0 +1,18 @@
+// Baseline User model (plans/06-database-schema-migrations-baseline.md §4)
+// — deliberately minimal: identity + the relations later plans' stubs need.
+// Plan 07 (Auth) extends this file directly with whatever Better Auth's
+// Prisma adapter requires, rather than creating a competing model (§7) —
+// it's the one thing allowed to extend `User` outside its owning plan.
+model User {
+  id          String   @id
+  email       String   @unique
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  vehicles Vehicle[]
+  listings Listing[]
+  messages Message[]
+
+  @@map("users")
+}

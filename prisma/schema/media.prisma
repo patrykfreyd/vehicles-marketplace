@@ -1,0 +1,14 @@
+// Stub; full fields (image-category enum, large/medium/thumbnail variant
+// paths) land in Plan 12 — see
+// plans/06-database-schema-migrations-baseline.md §4/§7.
+model Media {
+  id        String   @id
+  listingId String   @map("listing_id")
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  path      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([listingId])
+  @@map("media")
+}
