@@ -1,0 +1,224 @@
+// Plan 08 (Catalogue Data Model & JSON Schema) — the Make -> Model ->
+// Generation -> Derivative hierarchy plus the controlled-value/alias/
+// data-quality machinery it needs. See plans/08-catalogue-data-model-json-schema.md
+// §5 for the design this file implements close to verbatim.
+//
+// `Fuel`/`Transmission`/`Drivetrain`/`BodyStyle` mirror the Zod enums
+// already defined in packages/validation/src/enums (Plan 03 §7) — this is
+// the first plan that needs them as real Postgres enum columns, so it
+// defines the Prisma-level enum here, kept value-for-value identical to
+// the Zod source of truth.
+enum Fuel {
+  PETROL
+  DIESEL
+  HYBRID
+  PHEV
+  ELECTRIC
+  HYDROGEN
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+  DCT
+  CVT
+}
+
+enum Drivetrain {
+  FWD
+  RWD
+  AWD
+}
+
+enum BodyStyle {
+  HATCHBACK
+  SALOON
+  ESTATE
+  COUPE
+  CONVERTIBLE
+  SUV
+  MPV
+  PICKUP
+}
+
+// Catalogue-specific enums added by this plan (§4).
+enum EngineConfiguration {
+  INLINE_3
+  INLINE_4
+  INLINE_5
+  INLINE_6
+  V6
+  V8
+  V10
+  V12
+  FLAT_4
+  FLAT_6
+  ELECTRIC_MOTOR
+}
+
+enum Aspiration {
+  NATURALLY_ASPIRATED
+  TURBO
+  TWIN_TURBO
+  SUPERCHARGED
+  ELECTRIC
+}
+
+enum ColourFamily {
+  BLACK
+  WHITE
+  BLUE
+  RED
+  GREEN
+  GREY
+  SILVER
+  YELLOW
+  ORANGE
+  PURPLE
+  BROWN
+  BEIGE
+}
+
+enum CatalogueStatus {
+  IMPORTED
+  AI_DRAFT
+  REVIEW_REQUIRED
+  SOURCE_CONFIRMED
+  APPROVED
+  DEPRECATED
+}
+
+enum CatalogueEntityType {
+  MAKE
+  MODEL
+  GENERATION
+  DERIVATIVE
+  ENGINE_FAMILY
+  MANUFACTURER_COLOUR
+}
+
+// Catalogue entities use stable, human-readable slug IDs, not prefixed
+// ULIDs — see plans/03-shared-types-validation.md §5: curated, low-volume,
+// and the slug itself is useful in URLs/logs (idea doc §29).
+model Make {
+  id   String @id // slug, e.g. "bmw"
+  name String
+
+  models  Model[]
+  colours ManufacturerColour[]
+
+  @@map("makes")
+}
+
+model Model {
+  id     String @id // slug, e.g. "bmw-m4"
+  makeId String @map("make_id")
+  make   Make   @relation(fields: [makeId], references: [id])
+  name   String
+
+  generations Generation[]
+
+  @@index([makeId])
+  @@map("models")
+}
+
+model Generation {
+  id                  String @id // slug, e.g. "bmw-m4-g82"
+  modelId             String @map("model_id")
+  model               Model  @relation(fields: [modelId], references: [id])
+  code                String // "G82"
+  productionStartYear Int    @map("production_start_year")
+  productionEndYear   Int?   @map("production_end_year")
+
+  derivatives Derivative[]
+
+  @@index([modelId])
+  @@map("generations")
+}
+
+model Derivative {
+  id             String     @id // slug, e.g. "bmw-m4-g82-competition-xdrive"
+  generationId   String     @map("generation_id")
+  generation     Generation @relation(fields: [generationId], references: [id])
+  name           String // "M4 Competition xDrive"
+  specialEdition Boolean    @default(false) @map("special_edition")
+
+  bodyStyle BodyStyle @map("body_style")
+  doors     Int?
+  seats     Int?
+
+  fuel             Fuel
+  engineCapacityCc Int?                 @map("engine_capacity_cc")
+  cylinders        Int?
+  configuration    EngineConfiguration?
+  aspiration       Aspiration?
+  engineFamily     String?              @map("engine_family") // "S58"
+  powerBhp         Int?                 @map("power_bhp")
+  torqueNm         Int?                 @map("torque_nm")
+
+  // No `@default([])` in the plan's own §5 snippet, but added here so
+  // rows can legitimately omit transmissions (the idea doc's own F82 "M4
+  // Competition" worked example does exactly that — see §7/catalogue/bmw/m4.json)
+  // without every insert having to pass an empty array explicitly.
+  transmissions              Transmission[] @default([])
+  drivetrain                 Drivetrain     @map("drivetrain")
+  drivetrainManufacturerName String?        @map("drivetrain_manufacturer_name") // "M xDrive"
+
+  zeroToSixtyTwoSeconds Float? @map("zero_to_sixty_two_seconds")
+  topSpeedMph           Int?   @map("top_speed_mph")
+
+  status            CatalogueStatus @default(AI_DRAFT)
+  confidence        Float?
+  reviewed          Boolean         @default(false)
+  completenessScore Int             @default(0) @map("completeness_score")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([generationId])
+  @@map("derivatives")
+}
+
+model ManufacturerColour {
+  id        String       @id
+  makeId    String       @map("make_id")
+  make      Make         @relation(fields: [makeId], references: [id])
+  name      String // "Marina Bay Blue Metallic"
+  family    ColourFamily
+  paintCode String?      @map("paint_code") // "C1K"
+
+  @@index([makeId])
+  @@map("manufacturer_colours")
+}
+
+model Equipment {
+  id       String @id // "carbon_bucket_seats"
+  name     String // canonical display name
+  category String
+
+  manufacturerAliases ManufacturerEquipmentAlias[]
+
+  @@map("equipment")
+}
+
+model ManufacturerEquipmentAlias {
+  id               String    @id
+  equipmentId      String    @map("equipment_id")
+  equipment        Equipment @relation(fields: [equipmentId], references: [id])
+  makeId           String    @map("make_id")
+  manufacturerName String    @map("manufacturer_name") // "M Carbon Bucket Seats"
+
+  @@index([equipmentId])
+  @@map("manufacturer_equipment_aliases")
+}
+
+model CatalogueAlias {
+  id         String              @id
+  entityType CatalogueEntityType @map("entity_type")
+  entityId   String              @map("entity_id")
+  alias      String
+
+  @@index([entityType, entityId])
+  @@index([alias])
+  @@map("catalogue_aliases")
+}

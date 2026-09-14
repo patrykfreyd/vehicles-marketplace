@@ -1,0 +1,552 @@
+{
+  "schemas": {
+    "Make": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "Model": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "makeId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id", "makeId", "name"]
+    },
+    "Generation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "productionStartYear": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "productionEndYear": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "aliases": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": ["id", "modelId", "code", "productionStartYear"]
+    },
+    "Derivative": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "generationId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "specialEdition": {
+          "default": false,
+          "type": "boolean"
+        },
+        "bodyStyle": {
+          "type": "string",
+          "enum": ["HATCHBACK", "SALOON", "ESTATE", "COUPE", "CONVERTIBLE", "SUV", "MPV", "PICKUP"]
+        },
+        "doors": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "seats": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "fuel": {
+          "type": "string",
+          "enum": ["PETROL", "DIESEL", "HYBRID", "PHEV", "ELECTRIC", "HYDROGEN"]
+        },
+        "engineCapacityCc": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "cylinders": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration": {
+          "type": "string",
+          "enum": [
+            "INLINE_3",
+            "INLINE_4",
+            "INLINE_5",
+            "INLINE_6",
+            "V6",
+            "V8",
+            "V10",
+            "V12",
+            "FLAT_4",
+            "FLAT_6",
+            "ELECTRIC_MOTOR"
+          ]
+        },
+        "aspiration": {
+          "type": "string",
+          "enum": ["NATURALLY_ASPIRATED", "TURBO", "TWIN_TURBO", "SUPERCHARGED", "ELECTRIC"]
+        },
+        "engineFamily": {
+          "type": "string",
+          "minLength": 1
+        },
+        "powerBhp": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "torqueNm": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "transmissions": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["MANUAL", "AUTOMATIC", "DCT", "CVT"]
+          }
+        },
+        "drivetrain": {
+          "type": "string",
+          "enum": ["FWD", "RWD", "AWD"]
+        },
+        "drivetrainManufacturerName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "zeroToSixtyTwoSeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "topSpeedMph": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "default": "AI_DRAFT",
+          "type": "string",
+          "enum": [
+            "IMPORTED",
+            "AI_DRAFT",
+            "REVIEW_REQUIRED",
+            "SOURCE_CONFIRMED",
+            "APPROVED",
+            "DEPRECATED"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reviewed": {
+          "default": false,
+          "type": "boolean"
+        },
+        "completenessScore": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "aliases": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": ["id", "generationId", "name", "bodyStyle", "fuel", "drivetrain"]
+    },
+    "ManufacturerColour": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "makeId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "type": "string",
+          "enum": [
+            "BLACK",
+            "WHITE",
+            "BLUE",
+            "RED",
+            "GREEN",
+            "GREY",
+            "SILVER",
+            "YELLOW",
+            "ORANGE",
+            "PURPLE",
+            "BROWN",
+            "BEIGE"
+          ]
+        },
+        "paintCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "aliases": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": ["id", "makeId", "name", "family"]
+    },
+    "Equipment": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id", "name", "category"]
+    },
+    "ManufacturerEquipmentAlias": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equipmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "makeId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "manufacturerName": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id", "equipmentId", "makeId", "manufacturerName"]
+    },
+    "CatalogueAlias": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "MAKE",
+            "MODEL",
+            "GENERATION",
+            "DERIVATIVE",
+            "ENGINE_FAMILY",
+            "MANUFACTURER_COLOUR"
+          ]
+        },
+        "entityId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["id", "entityType", "entityId", "alias"]
+    },
+    "CatalogueModelFile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "make": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generations": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "productionStartYear": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "productionEndYear": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "aliases": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "derivatives": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "specialEdition": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "bodyStyle": {
+                      "type": "string",
+                      "enum": [
+                        "HATCHBACK",
+                        "SALOON",
+                        "ESTATE",
+                        "COUPE",
+                        "CONVERTIBLE",
+                        "SUV",
+                        "MPV",
+                        "PICKUP"
+                      ]
+                    },
+                    "doors": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "seats": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "fuel": {
+                      "type": "string",
+                      "enum": ["PETROL", "DIESEL", "HYBRID", "PHEV", "ELECTRIC", "HYDROGEN"]
+                    },
+                    "engineCapacityCc": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "cylinders": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "configuration": {
+                      "type": "string",
+                      "enum": [
+                        "INLINE_3",
+                        "INLINE_4",
+                        "INLINE_5",
+                        "INLINE_6",
+                        "V6",
+                        "V8",
+                        "V10",
+                        "V12",
+                        "FLAT_4",
+                        "FLAT_6",
+                        "ELECTRIC_MOTOR"
+                      ]
+                    },
+                    "aspiration": {
+                      "type": "string",
+                      "enum": [
+                        "NATURALLY_ASPIRATED",
+                        "TURBO",
+                        "TWIN_TURBO",
+                        "SUPERCHARGED",
+                        "ELECTRIC"
+                      ]
+                    },
+                    "engineFamily": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "powerBhp": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "torqueNm": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "transmissions": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["MANUAL", "AUTOMATIC", "DCT", "CVT"]
+                      }
+                    },
+                    "drivetrain": {
+                      "type": "string",
+                      "enum": ["FWD", "RWD", "AWD"]
+                    },
+                    "drivetrainManufacturerName": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "zeroToSixtyTwoSeconds": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "topSpeedMph": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "status": {
+                      "default": "AI_DRAFT",
+                      "type": "string",
+                      "enum": [
+                        "IMPORTED",
+                        "AI_DRAFT",
+                        "REVIEW_REQUIRED",
+                        "SOURCE_CONFIRMED",
+                        "APPROVED",
+                        "DEPRECATED"
+                      ]
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "reviewed": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "completenessScore": {
+                      "default": 0,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "aliases": {
+                      "default": [],
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  },
+                  "required": ["name", "bodyStyle", "fuel", "drivetrain"]
+                }
+              }
+            },
+            "required": ["code", "productionStartYear", "derivatives"]
+          }
+        }
+      },
+      "required": ["make", "model", "generations"]
+    }
+  }
+}
