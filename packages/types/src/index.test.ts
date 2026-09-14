@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { ApiError, FuelType, HealthStatus, Id, PageResponse } from './index';
+import type {
+  ApiError,
+  CurrentUser,
+  FuelType,
+  HealthStatus,
+  Id,
+  PageResponse,
+  UserId,
+} from './index';
 
 describe('types', () => {
   it('allows a HealthStatus value to be assigned', () => {
@@ -25,5 +33,17 @@ describe('types', () => {
     expect(error.code).toBe('NOT_FOUND');
     expect(fuel).toBe('ELECTRIC');
     expect(page.items).toEqual(['a']);
+  });
+
+  it('accepts a UserId-branded CurrentUser (Plan 07)', () => {
+    const userId = 'usr_01HZX82K7Q4M' as UserId;
+    const currentUser: CurrentUser = {
+      id: userId,
+      email: 'jane@example.com',
+      emailVerified: false,
+      displayName: null,
+      isAdmin: false,
+    };
+    expect(currentUser.id).toBe(userId);
   });
 });

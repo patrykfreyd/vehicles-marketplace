@@ -46,13 +46,5 @@
     "turbo": "2.10.12",
     "typescript": "5.9.3"
   },
-  "prettier": "@vehicles-marketplace/prettier-config",
-  "lint-staged": {
-    "*.{js,jsx,cjs,mjs,ts,tsx}": [
-      "eslint --fix"
-    ],
-    "*.{js,jsx,cjs,mjs,ts,tsx,json,md,yml,yaml,css}": [
-      "prettier --write"
-    ]
-  }
+  "prettier": "@vehicles-marketplace/prettier-config"
 }

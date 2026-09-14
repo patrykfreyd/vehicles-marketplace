@@ -15,6 +15,12 @@ services:
     build:
       context: .
       dockerfile: docker/web.Dockerfile
+      args:
+        # See docker/web.Dockerfile's comment — Next.js needs this at build
+        # time, not just runtime, so it can't come from `environment:`/
+        # `env_file:` alone. Read from whatever --env-file the `docker
+        # compose` invocation was given (Plan 07).
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     depends_on:
       - api

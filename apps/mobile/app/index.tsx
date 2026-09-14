@@ -2,13 +2,16 @@ import { Link } from 'expo-router';
 import { Text, View } from 'react-native';
 import type { TextStyle } from 'react-native';
 import { createHealthCheck } from '@vehicles-marketplace/validation';
+import { Button } from '@vehicles-marketplace/ui-mobile';
 import { buildHealthMessage } from '../lib/health-message';
+import { signOut, useSession } from '../lib/auth-client';
 
 const containerStyle = {
   flex: 1,
   alignItems: 'center' as const,
   justifyContent: 'center' as const,
   padding: 16,
+  gap: 8,
 };
 
 // `as TextStyle` (not `satisfies`) — the object structurally matches the
@@ -23,6 +26,7 @@ const titleStyle = {
 
 export default function HomeScreen() {
   const health = createHealthCheck();
+  const { data: session } = useSession();
 
   return (
     <View style={containerStyle}>
@@ -31,6 +35,23 @@ export default function HomeScreen() {
       <Link href="/dev-components" style={{ marginTop: 12, color: '#2151FF' } as TextStyle}>
         Component demo
       </Link>
+      {session ? (
+        <>
+          <Text>Logged in as {session.user.email}</Text>
+          <Button variant="secondary" onPress={() => void signOut()}>
+            Log out
+          </Button>
+        </>
+      ) : (
+        <>
+          <Link href="/login" style={{ color: '#2151FF' } as TextStyle}>
+            Log in
+          </Link>
+          <Link href="/register" style={{ color: '#2151FF' } as TextStyle}>
+            Create an account
+          </Link>
+        </>
+      )}
     </View>
   );
 }

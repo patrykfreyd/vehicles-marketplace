@@ -115,13 +115,40 @@ Migrations Baseline) have landed something real to deploy.
    [`.env.example`](../.env.example)) with Test's real values:
    `APP_ENV=test`, its own `AUTH_SECRET`, its own database credentials,
    `DATABASE_URL`/`REDIS_URL` pointed at the `postgres`/`redis` service
-   names, and Test/sandbox values for `EMAIL_API_KEY`/`AI_API_KEY`/
-   `DVLA_API_KEY` where the providers that own those keys (Plans 07, 24, 14, 10) support a sandbox mode. This file is never committed — deploying it
-   securely via CI is Plan 35's job; for now, create/edit it by hand over
-   SSH.
+   names, and Test/sandbox values for `SMTP_*`/`AI_API_KEY`/`DVLA_API_KEY`
+   where the providers that own those keys (Plans 07, 24, 14, 10) support a
+   sandbox mode (§2.1a below covers `SMTP_*`/Google specifically). This file
+   is never committed — deploying it securely via CI is Plan 35's job; for
+   now, create/edit it by hand over SSH.
 7. Replace the placeholder domain in
    [`docker/Caddyfile.test`](../docker/Caddyfile.test) with the real one, if
    it wasn't already updated repo-wide.
+
+### 2.1a Email (SMTP) and Google OAuth setup (Plan 07)
+
+Both are prep-only in this repo today — the code path exists and is
+exercised (registration/reset-password work by having `EmailService` log
+the email instead of sending it; "Continue with Google" is wired but
+surfaces a toast) but no real credentials are configured yet. Steps for
+when they're ready, on any environment (Local's `.env.local`, or this
+host's `.env`):
+
+- **SMTP**: pick a provider/relay (a real mailbox, or a transactional-email
+  provider's SMTP endpoint) and create credentials, then set `SMTP_HOST`,
+  `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, and `EMAIL_FROM`
+  (a real sending address on that domain) — see `.env.example`'s comment on
+  these vars. No code change needed; `EmailService`
+  (`apps/api/src/modules/auth/email/email.service.ts`) starts sending for
+  real as soon as `SMTP_HOST` is non-empty.
+- **Google OAuth**: in the [Google Cloud
+  Console](https://console.cloud.google.com/) → APIs & Services →
+  Credentials → Create Credentials → OAuth client ID → "Web application".
+  Authorized redirect URI: `<API_URL>/api/v1/auth/callback/google` (Local:
+  `http://localhost:3001/api/v1/auth/callback/google`; Test/Production: the
+  same path on that environment's real `api.<domain>`). Set
+  `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` to the generated values — the
+  `google` social provider (`apps/api/src/modules/auth/auth-instance.ts`)
+  registers itself automatically once both are set, no code change needed.
 
 ### 2.2 Deploy
 

@@ -39,6 +39,35 @@ export const EnvSchema = z.object({
   // apps/api/src/swagger.ts) — unused (and unnecessary) in Local/Production.
   SWAGGER_USER: z.string().optional(),
   SWAGGER_PASSWORD: z.string().optional(),
+
+  // --- Plan 07 (Authentication & Authorization) ---
+  // Better Auth's session/cookie-signing secret. Required, no default — an
+  // app booting with a blank secret would sign every session with a
+  // well-known empty value, which is worse than failing to boot at all.
+  AUTH_SECRET: z.string().min(1, 'AUTH_SECRET is required'),
+
+  // Google OAuth (§11.3 — prep only): left blank until real credentials
+  // exist. auth-instance.ts only registers the `google` social provider
+  // when both are non-empty, so booting without them is a no-op, not an
+  // error — see docs/deployment-runbook.md's setup step for how to obtain
+  // real values later.
+  GOOGLE_CLIENT_ID: z.string().default(''),
+  GOOGLE_CLIENT_SECRET: z.string().default(''),
+
+  // SMTP (§11.1 — prep only, replacing Plan 02's placeholder Resend-shaped
+  // `EMAIL_API_KEY`): left blank until a real mailbox/relay exists.
+  // EmailService falls back to logging the email instead of sending when
+  // SMTP_HOST is unset — see apps/api/src/modules/auth/email/email.service.ts
+  // and docs/deployment-runbook.md's setup step.
+  SMTP_HOST: z.string().default(''),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASSWORD: z.string().default(''),
+  SMTP_SECURE: z
+    .string()
+    .default('false')
+    .transform((value) => value === 'true'),
+  EMAIL_FROM: z.string().default('Vehicles Marketplace <no-reply@example.co.uk>'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

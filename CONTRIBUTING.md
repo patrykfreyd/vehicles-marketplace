@@ -181,3 +181,38 @@ deliberately-thrown 4xx `HttpException`'s `message` is shown to the client
 as-is; anything resolving to a 5xx (including a bug that throws one) is
 logged in full and replaced with a generic message before it reaches the
 client — never add detail to a 5xx response body to work around this.
+
+## Authentication & authorization conventions (Plan 07)
+
+Fixed by
+[`plans/07-authentication-authorization.md`](plans/07-authentication-authorization.md).
+`AuthModule` (`apps/api/src/modules/auth/`) is `@Global()`, so every module
+below is usable anywhere with no explicit import.
+
+- Every route requires a valid session **by default** — `AuthGuard` is
+  registered globally. Add `@Public()` to opt a route out explicitly
+  (register/login/catalogue browsing/etc.) — exposing something is always a
+  conscious choice, never the reverse. A route that legitimately needs to
+  answer regardless of auth state (health checks, the 404 fallback) is
+  `@Public()` too, for the same reason.
+- `@CurrentUser()` resolves to a typed `CurrentUser` (`id`, `email`,
+  `emailVerified`, `displayName`, `isAdmin` — `packages/validation/src/auth/current-user.ts`)
+  pulled from the verified session. Never re-parse a cookie/token yourself.
+- `@UseGuards(AdminGuard)` requires `isAdmin`; `@UseGuards(EmailVerifiedGuard)`
+  requires a verified email (for actions like creating a listing or sending
+  a message — not required to browse, search, save, or watch). Both run
+  after the global `AuthGuard`, which has already attached
+  `@CurrentUser()`'s value to the request by the time they run.
+- An unverified account is locked out of **every** non-`@Public()` route 7
+  days after registration (`EmailVerificationDeadlineGuard`, also global) —
+  distinct from `EmailVerifiedGuard` above, which gates specific actions
+  unconditionally rather than the whole app on a deadline.
+- Resource-level ownership checks ("only this listing's seller can edit
+  it") are **not** a generic guard — each owning module writes its own
+  explicit check using `@CurrentUser()`, because "who owns this" means
+  something different per entity.
+- `/api/v1/auth/*` (Better Auth's own routes — sign-up, sign-in, sessions,
+  OAuth callbacks, ...) is mounted as raw Express middleware in `main.ts`,
+  not a Nest controller, and never reaches Nest's router or guards — see
+  `apps/api/src/modules/auth/auth.controller.ts`'s comment for why. Don't
+  try to add a Nest-routed endpoint under that prefix.

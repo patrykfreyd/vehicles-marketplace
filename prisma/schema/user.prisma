@@ -1,18 +1,49 @@
-// Baseline User model (plans/06-database-schema-migrations-baseline.md §4)
-// — deliberately minimal: identity + the relations later plans' stubs need.
-// Plan 07 (Auth) extends this file directly with whatever Better Auth's
-// Prisma adapter requires, rather than creating a competing model (§7) —
-// it's the one thing allowed to extend `User` outside its owning plan.
+// Baseline User model (plans/06-database-schema-migrations-baseline.md §4),
+// extended here per plans/07-authentication-authorization.md §4/§7 — the one
+// plan allowed to extend `User` outside its owning plan (Plan 06 §10.3).
+//
+// `emailVerified`/`isAdmin` are this plan's own additions. `displayName`
+// stays optional and is mapped onto Better Auth's core `name` attribute via
+// `user.fields.name` in auth-instance.ts, rather than adding a second
+// `name`/`fullName` column — registration (§6) deliberately collects only
+// email/password, so a display name is always derived (see
+// `deriveDisplayNameFromEmail` in @vehicles-marketplace/utils) rather than
+// typed by the user at sign-up. `image` is Better Auth's core avatar field
+// (populated by Google's profile picture on social sign-in); nothing in this
+// repo writes it otherwise.
 model User {
-  id          String   @id
-  email       String   @unique
-  displayName String?  @map("display_name")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            String   @id
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
+  displayName   String?  @map("display_name")
+  image         String?  @map("image_url")
+  isAdmin       Boolean  @default(false) @map("is_admin")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  sellerProfile SellerProfile?
+  // Better Auth's own tables (prisma/schema/auth.prisma) — generated to
+  // match the field/table shape its Prisma adapter expects, per §4's
+  // handoff note in Plan 06 §7.
+  accounts      Account[]
+  sessions      Session[]
 
   vehicles Vehicle[]
   listings Listing[]
   messages Message[]
 
   @@map("users")
+}
+
+// Plan 07 §3/§49 — seller capability is implicit: presence of this row (not
+// a `role` enum), created the first time the "Sell a car" wizard is started
+// (Plan 20). Nothing in this plan creates one; it's the shape Plan 20 writes
+// to.
+model SellerProfile {
+  id        String   @id
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("seller_profiles")
 }

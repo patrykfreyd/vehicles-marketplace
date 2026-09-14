@@ -1,6 +1,6 @@
 # Plan 07 — Authentication & Authorization
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 02 (`AUTH_SECRET`/domain conventions), Plan 03
 (`ApiErrorSchema`, ID strategy), Plan 04 (inline-validated form pattern,
 toast system these auth screens use directly), Plan 05 (Nest module
@@ -188,36 +188,179 @@ per-attempt throttling (they're not credential-guessing surfaces).
 
 ## 10. Acceptance criteria
 
-- [ ] Register with email/password creates a `User` row, sends a real
-      verification email via Resend (sandbox/test recipient restriction in
-      Test/Local per Plan 02 §... email policy), and the account is
-      unverified until the link is followed.
-- [ ] Login with correct credentials issues a session usable by both a web
+- [x] Register with email/password creates a `User` row (verified for real:
+      `usr_...`-prefixed, correctly persisted), sends a verification email
+      (logged rather than actually delivered until real SMTP credentials
+      exist — §11.1), and the account is unverified until the link is
+      followed. Also, per §11.2: still unverified 7 days later locks the
+      account out of every non-`@Public()` route (`EmailVerificationDeadlineGuard`,
+      verified for real by backdating a test row's `createdAt`).
+- [x] Login with correct credentials issues a session usable by both a web
       cookie and, separately, a mobile bearer token against the same
-      account.
-- [ ] Login with incorrect credentials shows one generic toast, with no
+      account. Verified for real: the same session token worked as both a
+      `Cookie` header and an `Authorization: Bearer` header against
+      `POST /api/v1/listings`.
+- [x] Login with incorrect credentials shows one generic toast, with no
       field-level error and identical wording regardless of whether the
       email exists.
-- [ ] Google login creates or matches a `User` correctly in Local (using a
-      real Google OAuth test app — see open question 3).
-- [ ] Forgot-password → reset-password flow works end to end, including
+- [x] Google login is fully wired (server `socialProviders.google` +
+      "Continue with Google" on both clients) but not exercised against a
+      real Google account — no Google Cloud OAuth app exists yet, per
+      §11.3; it activates automatically once `GOOGLE_CLIENT_ID`/
+      `GOOGLE_CLIENT_SECRET` are set.
+- [x] Forgot-password → reset-password flow works end to end, including
       the inline password-strength/confirm-match validation from §6.
-- [ ] An unauthenticated request to a non-`@Public()` route returns 401 in
-      the `ApiError` shape from Plan 03; a non-admin request to an
-      `AdminGuard`-protected route returns 403.
-- [ ] Attempting to create a listing (stubbed endpoint is fine at this
+- [x] An unauthenticated request to a non-`@Public()` route returns 401 in
+      the `ApiError` shape from Plan 03 (verified for real:
+      `POST /api/v1/listings` with no session → 401 `UNAUTHORIZED`); a
+      non-admin request to an `AdminGuard`-protected route returns 403
+      (`admin.guard.test.ts`; no admin-protected route exists yet to
+      exercise live — the first one Plan 09/28/32 add will be the live
+      proof).
+- [x] Attempting to create a listing (stubbed endpoint is fine at this
       stage) with an unverified email is rejected with a clear, toast-
-      ready message.
-- [ ] Session persists across a web page reload and a mobile app cold
-      restart without re-prompting login.
+      ready message. Verified for real: `{"code":"FORBIDDEN","message":"Verify
+      your email to do this."}`.
+- [x] Session persists across a web page reload (Better Auth's cookie) and
+      a mobile app cold restart (`expo-secure-store` + `useSession()`'s
+      `isPending` gate in `apps/mobile/app/_layout.tsx`) without
+      re-prompting login.
 
-## 11. Open questions for you
+## 11. Open questions for you — resolved 2026-09
 
-1. Confirm **Resend** as the email provider, or do you already have one
-   you'd prefer (e.g. Postmark, SES)?
-2. Confirm requiring verified email before listing/messaging (§3) — too
-   strict, about right, or should it also gate saving/watching?
-3. Do you already have a Google Cloud OAuth app/credentials, or does this
-   plan need to include creating one as a setup step?
-4. Confirm the `isAdmin` boolean is sufficient for V1 rather than
-   designing a roles table now.
+1. **Not Resend — SMTP, added later.** `EmailService`
+   (`apps/api/src/modules/auth/email/email.service.ts`) sends over SMTP via
+   `nodemailer`, reading `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/
+   `SMTP_PASSWORD`/`SMTP_SECURE`/`EMAIL_FROM` (`.env.example`, replacing this
+   plan's original Resend-shaped `EMAIL_API_KEY`). Prep only for now, per
+   your instruction: `SMTP_HOST` is blank until a real mailbox/relay exists,
+   and `EmailService` logs the email instead of sending when it's unset —
+   registration/reset-password work end-to-end locally without one. Setup
+   steps for filling in real SMTP credentials once ready are in
+   `.env.example`'s comment on those vars and
+   `docs/deployment-runbook.md` §2.1.
+2. **Confirmed, and stronger than §3's original proposal**: email
+   verification is required **within 7 days of registration** to keep
+   access to the app at all — not just to list/message. Two independent
+   mechanisms, both in `apps/api/src/modules/auth/`:
+   - `EmailVerifiedGuard` (§3's original gate, per-route) — blocks listing
+     creation/messaging unconditionally for an unverified account, at any
+     time. This plan's own stub proof is
+     `apps/api/src/modules/listings/listings.controller.ts` (Plan 11
+     replaces it with the real thing).
+   - `EmailVerificationDeadlineGuard` (new, global `APP_GUARD`) — once 7
+     days pass since `User.createdAt` with `emailVerified` still `false`,
+     every non-`@Public()` route is rejected (403) until the account is
+     verified. `@Public()` routes (register/login/forgot-password/verify-
+     email/...) stay reachable regardless, so a locked-out user can still
+     log in and resend the verification link.
+   Saving/watching stay ungated, as §3 originally proposed — not extended.
+3. **No existing Google Cloud OAuth app — prep only, added later.** The
+   `google` social provider (`auth-instance.ts`) is only registered once
+   both `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are non-empty; both are
+   blank in `.env.example` today, so this is a safe no-op until real
+   credentials exist. The "Continue with Google" button is still wired on
+   both clients (§7) — it just surfaces a toast instead of succeeding until
+   then. Setup steps for creating the OAuth app and its redirect URI are in
+   `.env.example`'s comment on these vars.
+4. **Confirmed** — a plain `isAdmin: Boolean` on `User`, no roles table.
+
+## 12. Deviations from this plan worth flagging
+
+- **`prisma/schema/auth.prisma`'s `Account`/`Session`/`Verification` models
+  are hand-written, not produced by `better-auth generate`** as §4
+  originally planned. The standalone `@better-auth/cli` package is
+  deprecated upstream and doesn't resolve this monorepo's
+  `@vehicles-marketplace/*` workspace imports out of the box. Instead, the
+  exact field/table shape was read directly out of the installed
+  `better-auth`/`@better-auth/core` packages' own schema-building source
+  (`getAuthTables()` in `@better-auth/core`) — the same source of truth the
+  generator itself introspects — then mapped to this repo's snake_case-
+  column convention like every other model. `User` also gained an
+  `image String? @map("image_url")` column beyond §4's literal snippet:
+  Better Auth's core user schema always includes an avatar field (populated
+  by Google's profile picture on social sign-in); there was no way to omit
+  it, only rename its storage column, which this does.
+- **IDs**: confirmed the app-generated prefixed-ULID strategy (Plan 03 §5)
+  applies to Better Auth's own tables too (`usr_`, `ses_`, `acc_`, `ver_`),
+  via `advanced.database.generateId` in `auth-instance.ts` — deliberately
+  `database.generateId`, not the top-level `advanced.generateId`: confirmed
+  against the installed adapter factory source that only the former is
+  consulted for a plain row `create()` (the latter is a separate hook a
+  handful of call sites check *first*, which would have silently taken
+  priority if both were set).
+- **§6's registration schema has no "name" field**, even though Better
+  Auth's core `name` attribute is required input on every sign-up call.
+  Rather than add a field the plan didn't ask for, both clients derive a
+  starting display name from the email's local part
+  (`deriveDisplayNameFromEmail` in `@vehicles-marketplace/utils`) and remap
+  Better Auth's `name` attribute onto the `displayName` column
+  (`user.fields.name` in `auth-instance.ts`) — editable later from account
+  settings, out of scope here.
+- **§8's rate limiting is two layers, not one.** Better Auth's own built-in
+  limiter ships a hardcoded default for `/sign-in*`/`/sign-up*` (3 requests
+  per 10 seconds, keyed by IP+path) that's *stricter* than §8's intended
+  numbers but on a much shorter window — spread out slowly, it would allow
+  far more than "5 attempts/15 min" long-term. `rateLimit.customRules` in
+  `auth-instance.ts` loosens that built-in default to a generous IP-only
+  ceiling; the actual §8 numbers (5/15min sign-in, 10/hour sign-up, 5/hour
+  forgot-password) are enforced precisely by a custom `hooks.before`
+  (`auth-rate-limit.hook.ts`) keyed by **IP+email**, using the shared Redis
+  client (`common/redis/redis.module.ts`, new — `@Global()`, same pattern
+  as `DbModule`). IP+email rather than IP-only was a deliberate choice: an
+  IP-only limit at those exact numbers would let one attacker's failed
+  attempts against *one* email lock out every other user sharing that IP
+  (corporate NAT, a mobile carrier, ...) from signing in to their own,
+  unrelated accounts.
+- **`GET /api/v1/health` and the wildcard `NotFoundFallbackController` are
+  now `@Public()`.** Both predate this plan's global `AuthGuard`; without
+  the decorator, deploy scripts polling `/health` (Plan 02/35) would get 401
+  instead of an answer, and a typo'd URL from an unauthenticated caller
+  would get a misleading 401 instead of the 404 that's actually true.
+- **`/api/v1/auth/*` is mounted as raw Express middleware in `main.ts`
+  (`mountAuthHandler`), not a Nest `@Controller()`**, despite
+  `auth.controller.ts`'s filename matching §5's literal tree. Better Auth's
+  handler (`better-call`) reads the raw, unparsed request body stream
+  itself; Nest's default global body parser would already have consumed it
+  by the time any controller ran. Nest's `bodyParser: false` plus a raw
+  `app.use()` mount before `express.json()`/`urlencoded()` (documented as
+  the correct Nest integration shape upstream) is what actually works — see
+  `auth.controller.ts`'s and `main.ts`'s comments. One real consequence:
+  `/api/v1/auth/*` never reaches Nest's router at all, so it's inherently
+  outside every Nest guard (`AuthGuard` included) — correct here, since
+  every Better Auth endpoint must be reachable without an existing session,
+  and its own endpoint-specific protections are wired into the Better Auth
+  instance itself instead (the rate-limit hook above).
+- **A throwaway `apps/api/src/modules/listings/` (`ListingsModule`,
+  `POST /listings` guarded by `EmailVerifiedGuard`) was added** — not in
+  the original plan, but needed to prove §10's "attempting to create a
+  listing with an unverified email is rejected" acceptance criterion for
+  real, the same way Plan 05's `HealthModule` was a throwaway proof of its
+  own pipeline. Plan 11 deletes/replaces it with the real Listings module.
+- **`packages/config`'s `EnvSchema` gained `AUTH_SECRET` (required, no
+  default — booting with a blank secret would sign every session with a
+  well-known empty value), `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`,
+  `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_SECURE`, and
+  `EMAIL_FROM`** (all optional, defaulting to blank/prep-safe values) — see
+  §11.1/§11.3. `apps/worker`'s `vitest.setup.ts` needed a schema-valid
+  `AUTH_SECRET` placeholder alongside its existing `DATABASE_URL`/
+  `REDIS_URL` ones, for the same reason those exist: `WorkerModule` shares
+  this schema wholesale even though the worker process never reads
+  `AUTH_SECRET` itself.
+- **`apps/web` and `apps/mobile` gained their first real env vars**
+  (`NEXT_PUBLIC_API_URL`, `EXPO_PUBLIC_API_URL` — the Better Auth clients'
+  base URL) and, following Plan 05's `apps/api` precedent, their `dev`
+  script now loads root `.env.local` via `dotenv-cli` too. **Deliberately
+  not `apps/web`'s `build` script**: `.env.local` also sets
+  `NODE_ENV=development`, and letting that leak into a *production*
+  `next build` (confirmed by reproducing it) causes a Turbopack prerender
+  crash on unrelated pages — `next build` needs Next's own production
+  `NODE_ENV`, not a dev-convenience override. `docker/web.Dockerfile` gained
+  a build-time `ARG NEXT_PUBLIC_API_URL` (Next inlines `NEXT_PUBLIC_*` at
+  build time, not runtime) sourced from `docker-compose.yml`'s new
+  `build.args`, itself reading whatever `--env-file` the `docker compose`
+  invocation was given — no per-environment override needed.
+- **`apps/api` gained `express` as a direct dependency** (previously only a
+  transitive one via `@nestjs/platform-express`) — `main.ts` now imports
+  `json`/`urlencoded` from it directly for the reason above, and this
+  repo's strict pnpm linking doesn't resolve undeclared dependencies.
