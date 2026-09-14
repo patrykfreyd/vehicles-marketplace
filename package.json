@@ -18,17 +18,31 @@
     "generate:api-client": "pnpm generate:openapi && pnpm --filter @vehicles-marketplace/api-client generate:api-client",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "prisma generate",
+    "db:migrate:dev": "dotenv -e .env.local -- prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:seed": "dotenv -e .env.local -- tsx prisma/seed/index.ts",
+    "db:studio": "dotenv -e .env.local -- prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
+    "@vehicles-marketplace/db": "workspace:*",
     "@vehicles-marketplace/eslint-config": "workspace:*",
     "@vehicles-marketplace/prettier-config": "workspace:*",
+    "@vehicles-marketplace/utils": "workspace:*",
+    "dotenv-cli": "11.0.0",
     "eslint": "9.39.5",
     "husky": "9.1.7",
     "lint-staged": "17.5.1",
     "prettier": "3.9.6",
+    "prisma": "6.19.3",
+    "tsx": "4.23.13",
     "turbo": "2.10.12",
     "typescript": "5.9.3"
   },

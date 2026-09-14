@@ -1,0 +1,20 @@
+// Datasource + generator only — every model lives in its own file in this
+// directory (Prisma's multi-file schema support treats every *.prisma file
+// here as one logical schema). See
+// plans/06-database-schema-migrations-baseline.md §2/§3 for why: with 17+
+// modules eventually adding models, one giant schema.prisma becomes an
+// unreviewable merge-conflict magnet — each owning plan adds its own file
+// instead of all editing this one.
+//
+// No custom generator `output` — the client generates into the default
+// `node_modules/@prisma/client` location, and packages/db/src/client.ts
+// imports it from there, wrapped in a single shared singleton (§2's
+// "client access pattern" decision).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

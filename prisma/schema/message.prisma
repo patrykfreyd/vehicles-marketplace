@@ -1,0 +1,15 @@
+// Stub; full fields land in Plan 25 alongside conversation.prisma — see
+// plans/06-database-schema-migrations-baseline.md §4/§7.
+model Message {
+  id             String       @id
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String       @map("sender_id")
+  sender         User         @relation(fields: [senderId], references: [id])
+  body           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@map("messages")
+}

@@ -1,0 +1,29 @@
+// Stub; full fields land in Plan 11. `status` proves the "status enum, not
+// soft-delete" lifecycle pattern from §2/§6: history (price changes, sold
+// listings) is preserved by moving through states, never by hiding rows
+// behind a `deletedAt` column — each owning plan decides its own states.
+enum ListingStatus {
+  DRAFT
+  LIVE
+  RESERVED
+  SOLD
+  ARCHIVED
+}
+
+model Listing {
+  id        String        @id
+  vehicleId String        @map("vehicle_id")
+  vehicle   Vehicle       @relation(fields: [vehicleId], references: [id])
+  sellerId  String        @map("seller_id")
+  seller    User          @relation(fields: [sellerId], references: [id])
+  status    ListingStatus @default(DRAFT)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  media Media[]
+
+  @@index([vehicleId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("listings")
+}

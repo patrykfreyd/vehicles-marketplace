@@ -1,6 +1,6 @@
 # Plan 06 — Database Schema & Migrations Baseline
 
-Status: Draft
+Status: Implemented — resolved 2026-09
 Depends on: Plan 02 (`DATABASE_URL` contract, Local Postgres running), Plan
 03 (casing convention, ID strategy, enums this schema uses), Plan 05
 (Prisma client consumed as an injectable provider in `apps/api`/
@@ -274,30 +274,102 @@ sample vehicles/listings for local development).
 
 ## 9. Acceptance criteria
 
-- [ ] `pnpm db:migrate:dev` against Local Postgres (from Plan 02) creates
+- [x] `pnpm db:migrate:dev` against Local Postgres (from Plan 02) creates
       and applies an initial migration covering §4's models with no
-      manual SQL editing required.
-- [ ] `packages/db`'s exported `db` client is importable from `apps/api`
+      manual SQL editing required. Verified for real: migration
+      `20260913193428_init` created and applied against local Docker
+      Postgres.
+- [x] `packages/db`'s exported `db` client is importable from `apps/api`
       and returns a real query result (e.g. `db.user.findMany()`).
-- [ ] `pnpm db:seed` inserts exactly one test user, idempotently (running
-      it twice doesn't duplicate or error).
-- [ ] `pnpm db:migrate:deploy` successfully applies the same migration
+      Verified for real (returned the seeded user, camelCase fields) and
+      wired as an injectable Nest provider (`DbModule`/`DB` token) in both
+      `apps/api` and `apps/worker`, per §11.
+- [x] `pnpm db:seed` inserts exactly one test user, idempotently (running
+      it twice doesn't duplicate or error). Verified for real: ran twice,
+      same user id both times, one row in `users`.
+- [x] `pnpm db:migrate:deploy` successfully applies the same migration
       against a Test-shaped Postgres instance (per Plan 02's environment
-      definition), proving the Local→Test promotion path works.
-- [ ] Every table name and column name in the actual database is
+      definition), proving the Local→Test promotion path works. Test isn't
+      provisioned yet (per the runbook), so this was verified against a
+      fresh local database standing in for one: `migrate deploy` applied
+      the same committed migration with no diffing, all six tables
+      present.
+- [x] Every table name and column name in the actual database is
       snake_case; every Prisma Client field accessed in TS is camelCase.
-- [ ] `pnpm lint`/`typecheck`/`build` remain green with `packages/db`
-      added as a new workspace package.
+      Verified via `psql` (`display_name`, `owner_id`, `vehicle_id`, ...)
+      against the generated client's camelCase fields.
+- [x] `pnpm lint`/`typecheck`/`build` remain green with `packages/db`
+      added as a new workspace package. Verified for real: `lint`/
+      `typecheck` both green across all 15 tasks; `build` green across the
+      4 packages that define one (`packages/db` has no `build` script,
+      same as every other `packages/*`); `pnpm test` also green (15
+      tasks, including the new `DbModule` tests in both `apps/api`/
+      `apps/worker`).
 
-## 10. Open questions for you
+## 10. Open questions for you — resolved 2026-09
 
-1. Confirm the multi-file Prisma schema approach (§2) — worth the small
-   extra setup now given how many plans will add models, or would you
-   rather keep one `schema.prisma` file until it actually becomes
-   unwieldy?
-2. Confirm "status enum instead of soft-delete" as the default lifecycle
-   pattern (§2) — any entity you already know needs true soft-delete
-   (recoverable within N days) rather than a status field?
-3. Any objection to Better Auth being the one thing allowed to extend
-   `User` outside its "owning plan only" pattern, given it's a third-party
-   library with its own schema requirements (§7)?
+1. **Confirmed multi-file Prisma schema** (§2) as originally proposed —
+   "multi-file straight away."
+2. **Confirmed status enum, not soft-delete**, as the default lifecycle
+   pattern (§2) — "keep records for now and not delete, status change
+   only. We'll decide later what to do with old data." No entity
+   identified yet that needs true recoverable soft-delete; if one comes
+   up, its owning plan decides then.
+3. **No objection** — Better Auth stays the one thing allowed to extend
+   `User` outside its "owning plan only" pattern (§7).
+
+## 11. Deviations from this plan worth flagging
+
+- **Prisma pinned at 6.19.3, not the newest major (8.x, an RC at time of
+  writing)** — `import { PrismaClient } from "@prisma/client"` (§3's exact
+  code) needs the client generated into `@prisma/client`'s own directory,
+  which Prisma 7+ no longer supports without an explicit custom
+  `output` path. 6.19.3 is the latest stable release still generating
+  there by default, keeping the singleton wrapper exactly as designed.
+- **A `prisma.config.ts` was added at the repo root** (not in the original
+  plan) — needed for one thing only: pointing `migrations.path` at
+  `prisma/migrations` (a sibling of `prisma/schema/`, per §3's tree).
+  Without it, `prisma migrate dev --schema prisma/schema` nests migrations
+  *inside* the schema folder instead (`prisma/schema/migrations/`),
+  discovered by actually running it. `db:*` scripts (§5) now call the bare
+  `prisma` subcommands with no `--schema` flag — the config file is the
+  source of truth instead.
+- **`@prisma/client` (and `prisma`) are also direct dependencies of the
+  root `package.json`**, not only of `packages/db`. Under pnpm's strict
+  linking, the root-level `db:*` scripts (which run `prisma generate`/
+  `migrate`/etc. with the repo root as `cwd`) need `@prisma/client`
+  resolvable from *there* too, or `prisma generate` falls back to
+  auto-installing it and hits pnpm's `ERR_PNPM_ADDING_TO_ROOT` workspace
+  guard (confirmed by hitting exactly that on the first `pnpm install`).
+  `packages/db` stays the only place app code is meant to import
+  `@prisma/client` from directly.
+- **A root-level `postinstall` script (`prisma generate`) was added** — so
+  every `pnpm install`, including inside `docker/api.Dockerfile`'s /
+  `worker.Dockerfile`'s build stage (which run `pnpm install
+  --frozen-lockfile` with no separate generate step after), always leaves
+  a working generated client behind. `prisma`/`@prisma/client`'s own
+  postinstall scripts (which fetch the query-engine binary) needed adding
+  to `pnpm-workspace.yaml`'s `allowBuilds` for this to run at all under
+  this repo's supply-chain-script policy (Plan 01).
+- **`packages/db`'s own FK-column indexes go slightly beyond §4's literal
+  code samples**: `vehicles.owner_id`, `listings.vehicle_id`/`seller_id`,
+  `media.listing_id`, and `messages.sender_id` are all indexed, applying
+  §6's "foreign keys are always indexed" rule to this plan's own baseline
+  models, not just future ones.
+- **`Listing.media`/`Vehicle.listings` back-relation fields were added**
+  beyond §4's snippets — Prisma's schema validator requires both sides of
+  an explicit relation to be declared (the `Media.listing`/`Listing.vehicle`
+  side alone doesn't validate without it).
+- **`DbModule`/`DB` injection token added in both `apps/api` and
+  `apps/worker`** (`src/common/db/db.module.ts`, `@Global()`), closing the
+  loop Plan 05 explicitly left open ("no Prisma client yet to inject
+  \(Plan 06\)" — see `postgres-health.indicator.ts`'s own comment). Not
+  wired into the existing health indicators themselves — that indicator's
+  tests and behavior are Plan 05's, left untouched; a future plan can
+  switch it to the shared client if it wants to.
+- **`docs/deployment-runbook.md` updated** to replace its placeholder
+  `pnpm db:migrate` with the real script names, and to run
+  `db:migrate:deploy` as a one-off `docker compose run --rm api ...`
+  container on Test/Production rather than from the bare host — `postgres`
+  isn't published to the host there (no `ports:` entry), only reachable by
+  service name from inside the Compose network.

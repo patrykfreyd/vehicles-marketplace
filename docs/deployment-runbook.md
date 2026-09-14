@@ -51,12 +51,17 @@ Add `--profile proxy` to also start Caddy and go through the reverse proxy
 at `http://localhost` / `http://api.localhost` instead of hitting
 `web`/`api` directly on their published ports.
 
-Either way, run migrations/seed once Postgres is up (real content lands
-with Plan 06):
+Either way, run migrations/seed once Postgres is up:
 
 ```sh
-pnpm db:migrate && pnpm db:seed
+pnpm db:migrate:dev && pnpm db:seed
 ```
+
+`db:migrate:dev` is Local-only — it can create a new migration from a
+schema change as well as apply existing ones, which needs interactive
+shadow-database support `migrate deploy` deliberately doesn't have. Test
+and Production only ever run migrations that were already created and
+committed locally (§2.2 below).
 
 **Important**: in Full Docker mode, `DATABASE_URL`/`REDIS_URL` in
 `.env.local` need `postgres`/`redis` as the hostname (the Docker service
@@ -125,16 +130,24 @@ cd /opt/vehicles-marketplace
 git pull
 docker compose --env-file .env -f docker-compose.yml -f docker-compose.test.yml build
 docker compose --env-file .env -f docker-compose.yml -f docker-compose.test.yml up -d
-pnpm db:migrate   # or the equivalent one-off container run, once Plan 06 defines it
+docker compose --env-file .env -f docker-compose.yml -f docker-compose.test.yml run --rm api pnpm db:migrate:deploy
 ```
+
+The migration runs as a one-off `api` container rather than from the bare
+host: `postgres` isn't published to the host on Test/Production (no
+`ports:` entry — see `docker-compose.yml`), only reachable by its service
+name from inside the Compose network, and the `api` image already has the
+repo, `pnpm`, and this host's `.env` (via `env_file`) available. Never run
+`db:migrate:dev` here — it's Local-only (§1).
 
 Caddy provisions its own HTTPS certificate automatically once DNS points at
 the server — nothing else to configure for TLS.
 
 ### 2.3 Redeploy (routine updates)
 
-Same three commands as §2.2 (`git pull`, `build`, `up -d`), plus
-`pnpm db:migrate` whenever the pulled commit includes new migrations.
+Same three commands as §2.2 (`git pull`, `build`, `up -d`), plus the
+`db:migrate:deploy` one-off run whenever the pulled commit includes new
+migrations.
 
 ## 3. Production
 

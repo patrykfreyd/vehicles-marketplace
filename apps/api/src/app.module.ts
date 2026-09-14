@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { loadEnv, type Env } from '@vehicles-marketplace/config';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
+import { DbModule } from './common/db/db.module';
 import { buildPinoHttpParams } from './common/logging/pino-options';
 import { NotFoundFallbackModule } from './common/not-found/not-found.module';
 import { HealthModule } from './modules/health/health.module';
@@ -32,6 +33,7 @@ import { HealthModule } from './modules/health/health.module';
     // tighter limit (login, message send, ...) override it per-route in
     // the plan that owns them — see §3's rate-limiting decision.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    DbModule,
     HealthModule,
     // Wildcard fallback — must stay last so every real module's routes are
     // matched first (see NotFoundFallbackController for why it exists).
