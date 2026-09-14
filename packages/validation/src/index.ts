@@ -10,6 +10,12 @@
  */
 import { z } from 'zod';
 
+export * from './auth/current-user';
+export * from './auth/forgot-password-request';
+export * from './auth/login-request';
+export * from './auth/password';
+export * from './auth/register-request';
+export * from './auth/reset-password-request';
 export * from './common/errors';
 export * from './common/health';
 export * from './common/money';

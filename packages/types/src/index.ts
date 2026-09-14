@@ -14,6 +14,7 @@ import type {
   ApiError,
   ApiHealthCheck,
   BodyStyle,
+  CurrentUser,
   Drivetrain,
   FuelType,
   HealthStatus,
@@ -27,6 +28,7 @@ export type {
   ApiError,
   ApiHealthCheck,
   BodyStyle,
+  CurrentUser,
   Drivetrain,
   FuelType,
   HealthStatus,
@@ -43,3 +45,7 @@ export type {
  * introduces that entity — see plans/03-shared-types-validation.md §5.
  */
 export type Id<Brand extends string> = string & { readonly __brand: Brand };
+
+// Plan 07 (Auth) — the entities this plan introduces.
+export type UserId = Id<'User'>;
+export type SellerProfileId = Id<'SellerProfile'>;

@@ -4,6 +4,7 @@ import { loadEnv } from './index';
 const validEnv = {
   DATABASE_URL: 'postgresql://user:pass@localhost:5432/marketplace',
   REDIS_URL: 'redis://localhost:6379',
+  AUTH_SECRET: 'a-very-secret-value',
 };
 
 describe('loadEnv', () => {
@@ -14,8 +15,26 @@ describe('loadEnv', () => {
       APP_URL: 'http://localhost:3000',
       API_URL: 'http://localhost:3001',
       PORT: 3001,
+      GOOGLE_CLIENT_ID: '',
+      GOOGLE_CLIENT_SECRET: '',
+      SMTP_HOST: '',
+      SMTP_PORT: 587,
+      SMTP_USER: '',
+      SMTP_PASSWORD: '',
+      SMTP_SECURE: false,
+      EMAIL_FROM: 'Vehicles Marketplace <no-reply@example.co.uk>',
       ...validEnv,
     });
+  });
+
+  it('requires AUTH_SECRET', () => {
+    expect(() =>
+      loadEnv({ DATABASE_URL: validEnv.DATABASE_URL, REDIS_URL: validEnv.REDIS_URL }),
+    ).toThrow();
+  });
+
+  it('coerces SMTP_SECURE from the string "true"', () => {
+    expect(loadEnv({ ...validEnv, SMTP_SECURE: 'true' }).SMTP_SECURE).toBe(true);
   });
 
   it('passes through valid overrides', () => {

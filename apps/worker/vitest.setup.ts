@@ -19,3 +19,9 @@ process.env.WORKER_TEST_HAS_REAL_INFRA = String(
 
 process.env.DATABASE_URL ??= 'postgresql://user:pass@localhost:5432/marketplace';
 process.env.REDIS_URL ??= 'redis://localhost:6379';
+// Plan 07 added AUTH_SECRET as a required (no-default) field — the worker
+// process never actually uses it (only apps/api does), but WorkerModule
+// shares packages/config's EnvSchema wholesale, so it still needs a
+// schema-valid placeholder here for the same reason as DATABASE_URL/
+// REDIS_URL above.
+process.env.AUTH_SECRET ??= 'a'.repeat(32);

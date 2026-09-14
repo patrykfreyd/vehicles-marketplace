@@ -2,12 +2,17 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { ApiHealthCheckSchema, type ApiHealthCheck } from '@vehicles-marketplace/validation';
+import { Public } from '../auth/public.decorator';
 import { HealthCheckResponseDto } from './dto/health-check-response.dto';
 import { HealthService } from './health.service';
 
 // Supersedes Plan 01's placeholder `/health` (§9) — real Postgres/Redis
 // connectivity checks, a Zod-validated body on success, and a 503 ApiError
 // on failure via the global ApiExceptionFilter when a check fails.
+//
+// `@Public()` (Plan 07): deploy scripts (Plan 02/35) poll this to confirm a
+// new release is up *before* promoting traffic — it can't require a session
+// to answer that.
 @Controller('health')
 export class HealthController {
   constructor(
@@ -15,6 +20,7 @@ export class HealthController {
     private readonly healthService: HealthService,
   ) {}
 
+  @Public()
   @Get()
   // Swagger doc comes from the createZodDto-backed HealthCheckResponseDto
   // (§5's DTO pattern) instead of Terminus's own auto-generated schema, so

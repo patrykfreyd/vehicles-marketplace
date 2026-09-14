@@ -3,6 +3,7 @@
  * plans need genuinely shared, trivial logic — kept deliberately tiny here.
  */
 export { createId } from './ids';
+export { deriveDisplayNameFromEmail } from './display-name';
 
 /** Exhaustiveness helper for switch/if-else chains over a union type. */
 export function assertNever(value: never): never {

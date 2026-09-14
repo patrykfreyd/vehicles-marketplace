@@ -1,0 +1,64 @@
+// Better Auth's own tables (plans/07-authentication-authorization.md §4) —
+// field names/types match exactly what Better Auth's Prisma adapter expects
+// for its "user"/"session"/"account"/"verification" models (confirmed
+// against `@better-auth/core`'s `buildAuthTables()`, betterAuth@1.7.4),
+// mapped to this repo's snake_case-column convention the same way every
+// other model here is. IDs are still app-generated prefixed ULIDs — see
+// `advanced.generateId` in `apps/api/src/modules/auth/auth-instance.ts` —
+// not Better Auth's own default ID shape, to stay consistent with Plan 03
+// §5's ID strategy.
+//
+// These are hand-written rather than produced by `better-auth generate`
+// (§4's original plan): the standalone `@better-auth/cli` generator package
+// is deprecated upstream and, run against this monorepo's config, doesn't
+// resolve `@vehicles-marketplace/*` workspace imports out of the box. The
+// field shape below was instead read directly out of the installed
+// `better-auth`/`@better-auth/core` packages' own schema-building source
+// (`getAuthTables()`), which is the actual source of truth the generator
+// itself would have introspected — same result, no extra tooling dependency.
+model Account {
+  id                    String    @id
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verifications")
+}

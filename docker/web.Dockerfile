@@ -19,6 +19,12 @@ CMD ["pnpm", "--filter", "@vehicles-marketplace/web", "dev"]
 
 FROM base AS production
 ENV NODE_ENV=production
+# Next.js inlines NEXT_PUBLIC_* vars into the client bundle at build time —
+# docker-compose.yml passes this through as a build arg (Plan 07), sourced
+# from whatever --env-file was given to `docker compose` (Local/Test/
+# Production all set it the same way `DATABASE_URL` etc. already are).
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN pnpm --filter @vehicles-marketplace/web build
 EXPOSE 3000
 CMD ["pnpm", "--filter", "@vehicles-marketplace/web", "start"]
