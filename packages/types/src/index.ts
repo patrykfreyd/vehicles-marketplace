@@ -14,28 +14,46 @@ import type {
   ApiError,
   ApiHealthCheck,
   BodyStyle,
+  ColourFamily,
   CurrentUser,
   Drivetrain,
+  EquipmentSource,
   FuelType,
   HealthStatus,
+  Listing,
+  ListingStatus,
+  ModificationCategory,
   MoneyPence,
   PageRequest,
   PageResponse,
+  SellerType,
+  ServiceHistoryType,
   Transmission,
+  Vehicle,
+  WriteOffCategory,
 } from '@vehicles-marketplace/validation';
 
 export type {
   ApiError,
   ApiHealthCheck,
   BodyStyle,
+  ColourFamily,
   CurrentUser,
   Drivetrain,
+  EquipmentSource,
   FuelType,
   HealthStatus,
+  Listing,
+  ListingStatus,
+  ModificationCategory,
   MoneyPence,
   PageRequest,
   PageResponse,
+  SellerType,
+  ServiceHistoryType,
   Transmission,
+  Vehicle,
+  WriteOffCategory,
 };
 
 /**
@@ -49,3 +67,7 @@ export type Id<Brand extends string> = string & { readonly __brand: Brand };
 // Plan 07 (Auth) — the entities this plan introduces.
 export type UserId = Id<'User'>;
 export type SellerProfileId = Id<'SellerProfile'>;
+
+// Plan 11 (Vehicle & Listing Data Model) — the entities this plan introduces.
+export type VehicleId = Id<'Vehicle'>;
+export type ListingId = Id<'Listing'>;

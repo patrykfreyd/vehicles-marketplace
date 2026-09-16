@@ -1,29 +1,56 @@
-// Stub; full fields land in Plan 11. `status` proves the "status enum, not
-// soft-delete" lifecycle pattern from §2/§6: history (price changes, sold
-// listings) is preserved by moving through states, never by hiding rows
-// behind a `deletedAt` column — each owning plan decides its own states.
+// plans/11-vehicle-listing-data-model.md §4/§6/§7 — extends Plan 06's bare
+// `Listing` stub into its full V1 shape: price, status lifecycle (with the
+// added `PAUSED` state), and price history. `vehicleId` is now `@unique`
+// — one fresh `Vehicle` per "Sell a car" attempt, no cross-owner
+// registration deduplication for V1 (§3).
+
 enum ListingStatus {
   DRAFT
   LIVE
+  PAUSED
   RESERVED
   SOLD
   ARCHIVED
 }
 
 model Listing {
-  id        String        @id
-  vehicleId String        @map("vehicle_id")
-  vehicle   Vehicle       @relation(fields: [vehicleId], references: [id])
-  sellerId  String        @map("seller_id")
-  seller    User          @relation(fields: [sellerId], references: [id])
-  status    ListingStatus @default(DRAFT)
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
+  id        String  @id
+  vehicleId String  @unique @map("vehicle_id") // 1:1, see §3
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  sellerId  String  @map("seller_id")
+  seller    User    @relation(fields: [sellerId], references: [id])
 
-  media Media[]
+  status      ListingStatus @default(DRAFT)
+  pricePence  Int           @map("price_pence")
+  title       String?
+  description String?       @db.Text
 
-  @@index([vehicleId])
+  locationPostcodeArea String? @map("location_postcode_area")
+  locationCountry      String? @default("GB") @map("location_country")
+
+  publishedAt DateTime? @map("published_at")
+  reservedAt  DateTime? @map("reserved_at")
+  soldAt      DateTime? @map("sold_at")
+  archivedAt  DateTime? @map("archived_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  priceHistory ListingPriceHistory[]
+  media        Media[]
+
   @@index([sellerId])
   @@index([status])
   @@map("listings")
+}
+
+model ListingPriceHistory {
+  id         String   @id
+  listingId  String   @map("listing_id")
+  listing    Listing  @relation(fields: [listingId], references: [id])
+  pricePence Int      @map("price_pence")
+  changedAt  DateTime @default(now()) @map("changed_at")
+
+  @@index([listingId])
+  @@map("listing_price_history")
 }

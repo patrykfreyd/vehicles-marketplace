@@ -36,6 +36,10 @@ model VehicleLookup {
 
   createdAt DateTime @default(now()) @map("created_at")
 
+  // plans/11-vehicle-listing-data-model.md §5 — the `Vehicle` created from
+  // this confirmed lookup, once VehiclesService.create() runs.
+  vehicle Vehicle?
+
   @@index([requestedByUserId])
   @@map("vehicle_lookups")
 }
