@@ -28,9 +28,10 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  vehicles Vehicle[]
-  listings Listing[]
-  messages Message[]
+  vehicles       Vehicle[]
+  listings       Listing[]
+  messages       Message[]
+  vehicleLookups VehicleLookup[]
 
   @@map("users")
 }

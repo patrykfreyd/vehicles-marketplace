@@ -8,8 +8,9 @@
  * variables `apps/api`/`apps/worker` need to boot: the app-wide
  * environment discriminator, the port apps/api binds to, and the
  * Postgres/Redis/CORS values the health checks and HTTP hardening depend
- * on. Auth/email/AI/DVLA secrets stay out of this schema until the plan
- * that first uses each (07, 12, 14, 10) adds it.
+ * on. Auth/email/AI secrets stay out of this schema until the plan that
+ * first uses each (07, 12, 14) adds it — DVLA (10) is the first of these to
+ * land.
  */
 import { z } from 'zod';
 
@@ -80,6 +81,24 @@ export const EnvSchema = z.object({
   // constraints `enrich` needs — overridable without a code change once a
   // cheaper/better option exists.
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+
+  // --- Plan 10 (DVLA Vehicle Lookup & Seller Matching) ---
+  // DVLA Vehicle Enquiry Service (VES) API key — left blank until DVLA
+  // provisioning is complete (open question left unresolved as of this
+  // plan; see docs/deployment-runbook.md's setup step). Same
+  // config-presence pattern as `SMTP_HOST`/`OPENAI_API_KEY` above:
+  // `VehicleLookupModule`'s DvlaClient provider uses the fake, fixture-
+  // backed implementation whenever this is blank (Local/Test today, and
+  // Production until a real key exists) and only switches to the real HTTP
+  // client once it's set — no code change needed either way.
+  DVLA_API_KEY: z.string().default(''),
+  // DVLA publishes a separate UAT/sandbox host for Test environments before
+  // production access is granted — overridable per-environment; defaults to
+  // the real VES production endpoint.
+  DVLA_API_BASE_URL: z
+    .string()
+    .url()
+    .default('https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
