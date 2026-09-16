@@ -21,9 +21,16 @@ export * from './common/health';
 export * from './common/money';
 export * from './common/pagination';
 export * from './enums/body-style';
+export * from './enums/colour-family';
 export * from './enums/drivetrain';
+export * from './enums/equipment-source';
 export * from './enums/fuel';
+export * from './enums/listing-status';
+export * from './enums/modification-category';
+export * from './enums/seller-type';
+export * from './enums/service-history-type';
 export * from './enums/transmission';
+export * from './enums/write-off-category';
 export * from './demo/contact-form';
 export * from './vehicle-lookup/registration';
 export * from './vehicle-lookup/dvla-lookup-request';
@@ -31,6 +38,17 @@ export * from './vehicle-lookup/dvla-lookup-result';
 export * from './vehicle-lookup/model-candidate';
 export * from './vehicle-lookup/derivative-candidate';
 export * from './vehicle-lookup/confirm';
+export * from './vehicle/registration-mask';
+export * from './vehicle/vehicle';
+export * from './vehicle/create-vehicle-request';
+export * from './vehicle/update-vehicle-request';
+export * from './vehicle/vehicle-equipment-request';
+export * from './vehicle/vehicle-modification-request';
+export * from './listing/listing';
+export * from './listing/create-listing-request';
+export * from './listing/update-listing-request';
+export * from './listing/update-listing-status-request';
+export * from './listing/list-listings-query';
 
 export const HealthCheckSchema = z.object({
   status: z.enum(['ok', 'error']),

@@ -36,15 +36,24 @@ model User {
   @@map("users")
 }
 
+// plans/11-vehicle-listing-data-model.md §4 — "Private seller" / "Trade
+// seller" badge the mockups render; needs to exist before Plan 33 (Dealer
+// Functionality) does the real dealer buildout.
+enum SellerType {
+  PRIVATE
+  DEALER
+}
+
 // Plan 07 §3/§49 — seller capability is implicit: presence of this row (not
 // a `role` enum), created the first time the "Sell a car" wizard is started
 // (Plan 20). Nothing in this plan creates one; it's the shape Plan 20 writes
 // to.
 model SellerProfile {
-  id        String   @id
-  userId    String   @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String     @id
+  userId    String     @unique @map("user_id")
+  user      User       @relation(fields: [userId], references: [id])
+  type      SellerType @default(PRIVATE)
+  createdAt DateTime   @default(now()) @map("created_at")
 
   @@map("seller_profiles")
 }

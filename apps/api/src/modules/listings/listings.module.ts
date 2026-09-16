@@ -1,9 +1,11 @@
-// Throwaway stub — see listings.controller.ts's top comment. Plan 11 owns
-// the real ListingsModule.
 import { Module } from '@nestjs/common';
+import { VehiclesModule } from '../vehicles/vehicles.module';
 import { ListingsController } from './listings.controller';
+import { ListingsService } from './listings.service';
 
 @Module({
+  imports: [VehiclesModule],
   controllers: [ListingsController],
+  providers: [ListingsService],
 })
 export class ListingsModule {}

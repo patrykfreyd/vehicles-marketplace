@@ -1,17 +1,111 @@
-// Stub; full fields (derivativeId, history, equipment, modifications) land
-// in Plan 11 once Plan 08's catalogue tables exist to reference — see
-// plans/06-database-schema-migrations-baseline.md §4/§7.
+// plans/11-vehicle-listing-data-model.md §4/§5 — extends Plan 06's bare
+// `Vehicle` stub into its full V1 shape. Vehicle-specific data (condition,
+// history, equipment, modifications) is always seller/DVLA-supplied, never
+// catalogue data (catalogue doc §9) — `derivativeId` is the one link back
+// to Plan 08's catalogue, nullable until a lookup is confirmed (§5's own
+// note: a `Vehicle` can exist in a `DRAFT` listing before that happens).
+
+enum ServiceHistoryType {
+  FULL
+  PARTIAL
+  NONE
+  UNKNOWN
+}
+
+enum WriteOffCategory {
+  CAT_A
+  CAT_B
+  CAT_S
+  CAT_N
+}
+
+enum ModificationCategory {
+  ECU_TUNE
+  EXHAUST
+  INTAKE
+  FORCED_INDUCTION
+  SUSPENSION
+  BRAKES
+  WHEELS
+  BODYWORK
+  INTERIOR
+  AUDIO
+  OTHER
+}
+
+enum EquipmentSource {
+  SELLER_DECLARED
+  AI_DETECTED
+}
+
 model Vehicle {
-  id        String   @id
-  ownerId   String   @map("owner_id")
-  owner     User     @relation(fields: [ownerId], references: [id])
-  // derivativeId intentionally omitted here — added in Plan 11 once Plan
-  // 08's catalogue tables exist to reference.
+  id              String         @id
+  ownerId         String         @map("owner_id")
+  owner           User           @relation(fields: [ownerId], references: [id])
+  derivativeId    String?        @map("derivative_id") // set once confirmed via Plan 10
+  derivative      Derivative?    @relation(fields: [derivativeId], references: [id])
+  vehicleLookupId String?        @unique @map("vehicle_lookup_id")
+  vehicleLookup   VehicleLookup? @relation(fields: [vehicleLookupId], references: [id])
+
+  registration      String
+  firstRegisteredAt DateTime? @map("first_registered_at")
+  mileageMiles      Int       @map("mileage_miles")
+  ownersCount       Int?      @map("owners_count")
+
+  colourFamily         ColourFamily?       @map("colour_family")
+  manufacturerColourId String?             @map("manufacturer_colour_id")
+  manufacturerColour   ManufacturerColour? @relation(fields: [manufacturerColourId], references: [id])
+
+  interiorDescription String? @map("interior_description") // "Silverstone / Black"
+  upholstery          String?
+
+  ukSupplied    Boolean @default(true) @map("uk_supplied")
+  imported      Boolean @default(false)
+  importCountry String? @map("import_country")
+
+  serviceHistoryType      ServiceHistoryType? @map("service_history_type")
+  mainDealerHistory       Boolean?            @map("main_dealer_history")
+  serviceRecordsAvailable Boolean?            @map("service_records_available")
+
+  accidentDeclared Boolean           @default(false) @map("accident_declared")
+  writeOffCategory WriteOffCategory? @map("write_off_category")
+
+  dvlaTaxStatus     String?   @map("dvla_tax_status")
+  dvlaMotStatus     String?   @map("dvla_mot_status")
+  dvlaMotExpiryDate DateTime? @map("dvla_mot_expiry_date")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  listings Listing[]
+  equipment     VehicleEquipment[]
+  modifications VehicleModification[]
+  listing       Listing?
 
   @@index([ownerId])
   @@map("vehicles")
+}
+
+model VehicleEquipment {
+  id          String          @id
+  vehicleId   String          @map("vehicle_id")
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id])
+  equipmentId String          @map("equipment_id")
+  equipment   Equipment       @relation(fields: [equipmentId], references: [id])
+  source      EquipmentSource @default(SELLER_DECLARED)
+
+  @@unique([vehicleId, equipmentId])
+  @@map("vehicle_equipment")
+}
+
+model VehicleModification {
+  id          String               @id
+  vehicleId   String               @map("vehicle_id")
+  vehicle     Vehicle              @relation(fields: [vehicleId], references: [id])
+  category    ModificationCategory
+  brand       String?
+  product     String?
+  description String?
+
+  @@index([vehicleId])
+  @@map("vehicle_modifications")
 }

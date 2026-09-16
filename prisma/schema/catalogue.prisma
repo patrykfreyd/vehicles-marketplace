@@ -179,7 +179,11 @@ model Derivative {
   reviewed          Boolean         @default(false)
   completenessScore Int             @default(0) @map("completeness_score")
 
-  sources DerivativeSource[]
+  sources  DerivativeSource[]
+  // plans/11-vehicle-listing-data-model.md §5 — the one link from a seller's
+  // Vehicle back to the catalogue; only an `APPROVED` derivative is
+  // referenceable (enforced in VehiclesService, not here).
+  vehicles Vehicle[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -196,6 +200,10 @@ model ManufacturerColour {
   family    ColourFamily
   paintCode String?      @map("paint_code") // "C1K"
 
+  // plans/11-vehicle-listing-data-model.md §5 — a seller can declare their
+  // Vehicle's exact factory paint against this table.
+  vehicles Vehicle[]
+
   @@index([makeId])
   @@map("manufacturer_colours")
 }
@@ -206,6 +214,9 @@ model Equipment {
   category String
 
   manufacturerAliases ManufacturerEquipmentAlias[]
+  // plans/11-vehicle-listing-data-model.md §5 — vehicle-level only, no
+  // catalogue-to-derivative equipment link (confirmed in Plan 08 §5).
+  vehicleLinks        VehicleEquipment[]
 
   @@map("equipment")
 }

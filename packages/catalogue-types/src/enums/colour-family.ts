@@ -1,23 +1,8 @@
 /**
- * plans/08-catalogue-data-model-json-schema.md §4 — the canonical colour
- * family every manufacturer paint name (ManufacturerColour) maps onto, so
- * "search blue cars" works across every manufacturer's own paint naming.
+ * Re-exported from `@vehicles-marketplace/validation` — see that package's
+ * `enums/colour-family.ts` for why the canonical definition moved there
+ * (plans/11-vehicle-listing-data-model.md §5). Kept as a local module so
+ * every existing relative import (`./enums/colour-family`) inside this
+ * package keeps working unchanged.
  */
-import { z } from 'zod';
-
-export const ColourFamilySchema = z.enum([
-  'BLACK',
-  'WHITE',
-  'BLUE',
-  'RED',
-  'GREEN',
-  'GREY',
-  'SILVER',
-  'YELLOW',
-  'ORANGE',
-  'PURPLE',
-  'BROWN',
-  'BEIGE',
-]);
-
-export type ColourFamily = z.infer<typeof ColourFamilySchema>;
+export { ColourFamilySchema, type ColourFamily } from '@vehicles-marketplace/validation';

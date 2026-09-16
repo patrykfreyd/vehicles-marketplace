@@ -18,6 +18,7 @@ import { CatalogueAdminModule } from './modules/catalogue-admin/catalogue-admin.
 import { HealthModule } from './modules/health/health.module';
 import { ListingsModule } from './modules/listings/listings.module';
 import { VehicleLookupModule } from './modules/vehicle-lookup/vehicle-lookup.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
 // This is the module template every future module-owning plan copies (see
 // plans/05-backend-api-foundation.md §5) — `HealthModule` below is the one
@@ -49,6 +50,7 @@ import { VehicleLookupModule } from './modules/vehicle-lookup/vehicle-lookup.mod
     HealthModule,
     ListingsModule,
     VehicleLookupModule,
+    VehiclesModule,
     // Wildcard fallback — must stay last so every real module's routes are
     // matched first (see NotFoundFallbackController for why it exists).
     NotFoundFallbackModule,
