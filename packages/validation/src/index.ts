@@ -25,6 +25,12 @@ export * from './enums/drivetrain';
 export * from './enums/fuel';
 export * from './enums/transmission';
 export * from './demo/contact-form';
+export * from './vehicle-lookup/registration';
+export * from './vehicle-lookup/dvla-lookup-request';
+export * from './vehicle-lookup/dvla-lookup-result';
+export * from './vehicle-lookup/model-candidate';
+export * from './vehicle-lookup/derivative-candidate';
+export * from './vehicle-lookup/confirm';
 
 export const HealthCheckSchema = z.object({
   status: z.enum(['ok', 'error']),

@@ -228,6 +228,70 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/vehicle-lookup/dvla': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['VehicleLookupController_lookupDvla'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicle-lookup/{id}/model-candidates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['VehicleLookupController_listModelCandidates'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicle-lookup/{id}/derivative-candidates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['VehicleLookupController_listDerivativeCandidates'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicle-lookup/{id}/confirm': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['VehicleLookupController_confirm'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/{path}': {
     parameters: {
       query?: never;
@@ -567,6 +631,68 @@ export interface components {
         };
       };
     };
+    DvlaLookupRequestDto: {
+      registration: string;
+    };
+    DvlaLookupResultDto_Output: {
+      id: string;
+      registration: string;
+      make: string;
+      matchedMakeId: string | null;
+      yearOfManufacture: number | null;
+      engineCapacityCc: number | null;
+      fuel: ('PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN') | null;
+      rawFuelType: string | null;
+      colour: string | null;
+      taxStatus: string | null;
+      motStatus: string | null;
+      motExpiryDate: string | null;
+    };
+    ModelCandidatePageDto_Output: {
+      items: {
+        id: string;
+        name: string;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    DerivativeCandidatePageDto_Output: {
+      items: {
+        id: string;
+        name: string;
+        generationId: string;
+        generationCode: string;
+        /** @enum {string} */
+        fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+        engineCapacityCc: number | null;
+        powerBhp: number | null;
+        /** @enum {string} */
+        drivetrain: 'FWD' | 'RWD' | 'AWD';
+        transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+        /** @enum {string} */
+        bodyStyle:
+          'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+        engineCapacityDiffCc: number | null;
+        withinTolerance: boolean;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    ConfirmVehicleLookupRequestDto: {
+      derivativeId: string;
+      /** @default false */
+      matchedManually: boolean;
+    };
+    ConfirmVehicleLookupResponseDto_Output: {
+      id: string;
+      selectedDerivativeId: string;
+      matchedManually: boolean;
+      predictionAccepted: boolean;
+    };
   };
   responses: never;
   parameters: never;
@@ -896,6 +1022,101 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  VehicleLookupController_lookupDvla: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DvlaLookupRequestDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DvlaLookupResultDto_Output'];
+        };
+      };
+    };
+  };
+  VehicleLookupController_listModelCandidates: {
+    parameters: {
+      query: {
+        makeId: string;
+        q?: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ModelCandidatePageDto_Output'];
+        };
+      };
+    };
+  };
+  VehicleLookupController_listDerivativeCandidates: {
+    parameters: {
+      query: {
+        modelId: string;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DerivativeCandidatePageDto_Output'];
+        };
+      };
+    };
+  };
+  VehicleLookupController_confirm: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConfirmVehicleLookupRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ConfirmVehicleLookupResponseDto_Output'];
+        };
       };
     };
   };

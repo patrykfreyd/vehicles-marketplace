@@ -1,6 +1,6 @@
 # Plan 10 — DVLA Vehicle Lookup & Seller Matching
 
-Status: Draft
+Status: Implemented — resolved 2026-09-14
 Depends on: Plan 08 (catalogue schema to match against), Plan 09 (only
 `APPROVED` derivatives are matchable), Plan 05 (Nest module — this is the
 "Vehicle Lookup" module named directly in the stack doc's module list),
@@ -175,33 +175,95 @@ your registration" / "YA22 GZX" / "Find my car" button), with:
 
 ## 8. Acceptance criteria
 
-- [ ] `DvlaClient`'s fake implementation returns realistic fixture data in
+- [x] `DvlaClient`'s fake implementation returns realistic fixture data in
       Local/Test, and the real implementation is only ever configured in
       environments where `DVLA_API_KEY` is present.
-- [ ] `POST /vehicle-lookup/dvla` with a fixture "found" registration
+- [x] `POST /vehicle-lookup/dvla` with a fixture "found" registration
       returns the expected fields and creates a `VehicleLookup` row,
       including the raw response for audit.
-- [ ] A fixture "not found" registration returns a clear, toast/field-
+- [x] A fixture "not found" registration returns a clear, toast/field-
       appropriate error (per §6) rather than a raw DVLA error passthrough.
-- [ ] Given a fixture DVLA result matching Plan 08's BMW M4 fixture's
+- [x] Given a fixture DVLA result matching Plan 08's BMW M4 fixture's
       year/engine/fuel, `derivative-candidates` correctly ranks the G82
       Competition xDrive above unrelated derivatives.
-- [ ] `confirm` correctly stores `predictionAccepted: true` when the
+- [x] `confirm` correctly stores `predictionAccepted: true` when the
       seller picks the top-ranked candidate, and `false` when they pick a
       different one or use manual matching.
-- [ ] The lookup endpoint is unreachable without an authenticated,
+- [x] The lookup endpoint is unreachable without an authenticated,
       verified-email session, and is throttled per-user beyond the global
       default.
-- [ ] `pnpm lint`/`typecheck`/`build`/`test` remain green.
+- [x] `pnpm lint`/`typecheck`/`build`/`test` remain green (verified with
+      real Postgres/Redis in Docker; see §10 on this plan's own added
+      fixtures/tests).
 
-## 9. Open questions for you
+## 9. Open questions for you — resolved 2026-09-14
 
-1. Confirm the corrected DVLA-response understanding in §2 — this is a
-   meaningful change from the idea doc's example and affects how many
-   manual steps the seller flow actually needs.
-2. Do you already hold a DVLA VES API key, or does provisioning one need
-   to be tracked as a setup task before this plan's real (non-fake) client
-   can be used in Test/Production?
-3. Confirm the per-user daily throttle figure in §5 (20/day proposed) —
-   too strict for a dealer bulk-listing many cars, or reasonable for V1
-   private-seller-first launch?
+1. **Confirmed** — §2's corrected understanding is what's built: DVLA
+   supplies make/year/engine/fuel/colour/tax/MOT only, and the seller picks
+   Model/confirms Derivative.
+2. **Not yet — tracked as a setup task**, not a blocker. `DVLA_API_KEY`
+   stays blank in every environment for now; `VehicleLookupModule`'s
+   provider (§3/§8, `apps/api/src/modules/vehicle-lookup/dvla/dvla-client.factory.ts`)
+   uses the fixture-backed `FakeDvlaClient` whenever it's blank and only
+   switches to the real `DvlaHttpClient` once a key is set — no code change
+   needed either way. See `docs/deployment-runbook.md` §2.1b for the
+   provisioning steps to run once ready.
+3. **Confirmed at 20/day** — `DvlaLookupThrottleGuard`
+   (`apps/api/src/modules/vehicle-lookup/dvla-lookup-throttle.guard.ts`).
+   Revisit if dealer/bulk-listing flows (Plan 33) need a higher per-account
+   limit later.
+4. **Real-world (fixture/DVLA-sandbox) end-to-end testing is deferred to a
+   later setup step**, once a real `DVLA_API_KEY` exists — this plan ships
+   against the fake client and its own fixtures (§8's acceptance criteria),
+   which is what "done" means for now; revisit test coverage once real DVLA
+   access is available.
+
+## 10. Deviations from this plan worth flagging
+
+- **`matchedMakeId` added to the DVLA lookup response** (not in §4's
+  `VehicleLookup` snippet, which has no column for it): DVLA's `make` is
+  free text with no link to Plan 08's `Make` table, and §5's own flow
+  ("Seller selects Model from a Make-filtered catalogue list") needs a
+  `makeId` to filter by. `VehicleLookupService.resolveMakeId` matches DVLA's
+  make text against `Make.name` (case-insensitive), falling back to a
+  `CatalogueAlias` (`entityType: 'MAKE'`) lookup for known manufacturer-name
+  variants; `null` (no match) is a valid outcome the UI (§6) falls back to
+  manual Make selection for. Computed on every read rather than persisted —
+  cheap, and re-resolves automatically as the catalogue grows.
+- **`VehicleLookup.requestedByUserId` is a real `@relation` to `User`**,
+  not a loose id as §4's snippet shows — every row is created by an
+  authenticated session, matching `Vehicle.owner`/`Listing.seller`'s
+  convention rather than `CatalogueImport.importedBy`'s (optional,
+  CLI-only-run) one.
+- **`DvlaClient` real-vs-fake selection is config-presence-driven
+  (`DVLA_API_KEY` set or blank), not a hard `APP_ENV` branch** as §3's
+  table literally reads — same pattern as `EmailService`/`OPENAI_API_KEY`.
+  Production doesn't have a real DVLA key yet either (§9.2), and silently
+  falling back to fixture data in a live Production would be worse than
+  this; the fake client is used in *any* environment without a key, the
+  real one in *any* environment with one.
+- **An upstream `nestjs-zod`/Zod-4 OpenAPI-generation bug**: a *bare*
+  `z.string().nullable()` (no other checks) emits OpenAPI 3.1's
+  `type: ["string", "null"]` shorthand, which `@nestjs/swagger`'s document
+  builder silently mis-renders as `{ type: "array", items: { type: "string" } }`
+  — `openapi-typescript` then (correctly, per that broken spec) types the
+  field as `string[]` instead of `string | null`. Worked around by adding
+  `.min(1)` to every nullable string field in `DvlaLookupResultSchema`
+  (`packages/validation/src/vehicle-lookup/dvla-lookup-result.ts`), which
+  steers the same conversion onto its (correct) `anyOf` path instead —
+  nothing before this plan had run a bare-nullable-string Zod schema
+  through `createZodDto`/`@ZodResponse` far enough to hit it. Worth
+  revisiting if `nestjs-zod`/`zod` are ever upgraded past the versions
+  pinned today.
+- **The UI (§6) ships as `<VehicleLookupFlow>`, a single reusable component**
+  (`apps/web/app/_components/vehicle-lookup/vehicle-lookup-flow.tsx`)
+  covering the whole registration → Model → Derivative → confirm flow, plus
+  a standalone demo route at `/dev/vehicle-lookup` (same spirit as Plan 04's
+  `/dev/components`) so it's exercisable before Plan 20's wizard exists to
+  host it. "Or enter manually"/"I'm not sure" call an `onManualFallback`
+  prop rather than rendering real catalogue-browsing UI themselves — a
+  generic Make→Model→Generation→Derivative browser doesn't exist yet as a
+  reusable component; building one is Plan 20's job, not this plan's (§7).
+- **Testing beyond this plan's own fixture-driven unit/integration suite is
+  deferred** (§9.1/§9.4) — no live DVLA sandbox call has been exercised;
+  revisit once a real (or DVLA-sandbox) `DVLA_API_KEY` exists.

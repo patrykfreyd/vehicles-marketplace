@@ -150,6 +150,30 @@ host's `.env`):
   `google` social provider (`apps/api/src/modules/auth/auth-instance.ts`)
   registers itself automatically once both are set, no code change needed.
 
+### 2.1b DVLA Vehicle Enquiry Service setup (Plan 10)
+
+Also prep-only today — the sell flow's registration lookup works end to end
+against a fixture-backed fake client (`VehicleLookupModule`'s `DvlaClient`
+provider), so nothing is blocked on this. Steps for when a real key exists:
+
+1. Apply for DVLA Vehicle Enquiry Service (VES) API access at
+   [driver-vehicle-licensing.api.gov.uk](https://developer-portal.driver-vehicle-licensing.api.gov.uk/)
+   — this requires a legitimate UK business use case (per §3's "Access
+   scope" decision, this endpoint is only ever reachable from an
+   authenticated, verified-email seller starting a listing, never a public
+   "look up any registration" tool, which is exactly the use DVLA's terms
+   expect). Approval is not instant — track it as a lead-time item, not a
+   same-day setup step.
+2. DVLA issues separate keys per environment tier (a UAT/sandbox key before
+   production access is granted). Set `DVLA_API_KEY` (and `DVLA_API_BASE_URL`
+   if the sandbox host differs from the production one) in Test's `.env`
+   with the sandbox key first; repeat with the production key in
+   Production's `.env` once granted.
+3. No code change needed either way: `VehicleLookupModule`'s provider
+   (`apps/api/src/modules/vehicle-lookup/dvla/dvla-client.factory.ts`)
+   switches from the fake client to `DvlaHttpClient` automatically as soon
+   as `DVLA_API_KEY` is non-empty.
+
 ### 2.2 Deploy
 
 ```sh

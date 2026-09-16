@@ -1,0 +1,41 @@
+// plans/10-dvla-lookup-seller-matching.md §4 — one row per registration a
+// seller looks up: the raw DVLA response fields (§2's corrected shape —
+// make/year/engine/fuel/colour/tax/MOT, no model/trim) plus the outcome of
+// the seller confirming (or rejecting) the system's derivative shortlist.
+// `predictionAccepted` is the idea doc §35 feedback signal this plan exists
+// to start collecting.
+//
+// One deviation from §4's own snippet: `requestedByUserId` is a real
+// `@relation` to `User`, not a loose id — every row is created by an
+// authenticated session (§5: every route requires one), so this is always
+// present, matching `Vehicle.owner`/`Listing.seller`'s convention rather
+// than `CatalogueImport.importedBy`'s (optional, CLI-only-run) one.
+model VehicleLookup {
+  id                String @id
+  registration      String // as entered, normalized (uppercase, no whitespace)
+  requestedByUserId String @map("requested_by_user_id")
+  requestedByUser   User   @relation(fields: [requestedByUserId], references: [id])
+
+  dvlaMake              String?   @map("dvla_make")
+  dvlaYearOfManufacture Int?      @map("dvla_year_of_manufacture")
+  dvlaEngineCapacityCc  Int?      @map("dvla_engine_capacity_cc")
+  dvlaFuel              Fuel?     @map("dvla_fuel")
+  dvlaColour            String?   @map("dvla_colour")
+  dvlaTaxStatus         String?   @map("dvla_tax_status")
+  dvlaMotStatus         String?   @map("dvla_mot_status")
+  dvlaMotExpiryDate     DateTime? @map("dvla_mot_expiry_date")
+  dvlaRawResponse       Json?     @map("dvla_raw_response") // full DVLA payload, for audit/debugging
+
+  // Populated by GET .../derivative-candidates once it's run for this
+  // lookup, in ranked order — lets `confirm` (§5) tell whether the seller
+  // picked the top-ranked candidate without recomputing the ranking.
+  candidateDerivativeIds String[] @default([]) @map("candidate_derivative_ids")
+  selectedDerivativeId   String?  @map("selected_derivative_id")
+  matchedManually        Boolean  @default(false) @map("matched_manually")
+  predictionAccepted     Boolean? @map("prediction_accepted") // null until confirm() runs
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([requestedByUserId])
+  @@map("vehicle_lookups")
+}
