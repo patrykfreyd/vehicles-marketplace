@@ -27,6 +27,9 @@ describe('loadEnv', () => {
       OPENAI_MODEL: 'gpt-4o-mini',
       DVLA_API_KEY: '',
       DVLA_API_BASE_URL: 'https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles',
+      UPLOAD_ROOT: './.data/uploads',
+      PUBLIC_UPLOAD_URL: 'http://localhost:3001/uploads',
+      OPENAI_VISION_MODEL: 'gpt-4o-mini',
       ...validEnv,
     });
   });

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import Redis from 'ioredis';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { loadEnv, type Env } from '@vehicles-marketplace/config';
@@ -10,6 +12,7 @@ import { DbModule } from './common/db/db.module';
 import { buildPinoHttpParams } from './common/logging/pino-options';
 import { NotFoundFallbackModule } from './common/not-found/not-found.module';
 import { RedisModule } from './common/redis/redis.module';
+import { StorageModule } from './common/storage/storage.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmailVerificationDeadlineGuard } from './modules/auth/email-verification-deadline.guard';
@@ -17,6 +20,7 @@ import { CatalogueModule } from './modules/catalogue/catalogue.module';
 import { CatalogueAdminModule } from './modules/catalogue-admin/catalogue-admin.module';
 import { HealthModule } from './modules/health/health.module';
 import { ListingsModule } from './modules/listings/listings.module';
+import { MediaModule } from './modules/media/media.module';
 import { VehicleLookupModule } from './modules/vehicle-lookup/vehicle-lookup.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
@@ -44,11 +48,25 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     DbModule,
     RedisModule,
+    StorageModule,
+    // Plan 12's `MediaModule` is the first producer of BullMQ jobs from this
+    // process (apps/worker's own `BullModule.forRootAsync` — worker.module.ts
+    // — is the consumer side, registered separately since they're different
+    // processes). Same `maxRetriesPerRequest: null` requirement as there.
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => ({
+        connection: new Redis(config.get('REDIS_URL', { infer: true }), {
+          maxRetriesPerRequest: null,
+        }),
+      }),
+    }),
     AuthModule,
     CatalogueModule,
     CatalogueAdminModule,
     HealthModule,
     ListingsModule,
+    MediaModule,
     VehicleLookupModule,
     VehiclesModule,
     // Wildcard fallback — must stay last so every real module's routes are

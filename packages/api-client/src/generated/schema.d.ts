@@ -219,9 +219,217 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    get: operations['ListingsController_list'];
     put?: never;
     post: operations['ListingsController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['ListingsController_getById'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['ListingsController_update'];
+    trace?: never;
+  };
+  '/api/v1/listings/{id}/status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['ListingsController_updateStatus'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicles': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['VehiclesController_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicles/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['VehiclesController_update'];
+    trace?: never;
+  };
+  '/api/v1/vehicles/{id}/equipment': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['VehiclesController_addEquipment'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicles/{id}/equipment/{eqId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['VehiclesController_removeEquipment'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicles/{id}/modifications': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['VehiclesController_addModification'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/vehicles/{id}/modifications/{modId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['VehiclesController_removeModification'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{id}/media': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['MediaController_list'];
+    put?: never;
+    post: operations['MediaController_upload'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{id}/media/coverage': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['MediaController_coverage'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/listings/{id}/media/reorder': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch: operations['MediaController_reorder'];
+    trace?: never;
+  };
+  '/api/v1/media/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['MediaController_remove'];
+    options?: never;
+    head?: never;
+    patch: operations['MediaController_updateCategory'];
+    trace?: never;
+  };
+  '/api/v1/media/{id}/retry': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['MediaController_retry'];
     delete?: never;
     options?: never;
     head?: never;
@@ -631,6 +839,460 @@ export interface components {
         };
       };
     };
+    CreateListingRequestDto: {
+      vehicleId: string;
+      pricePence: number;
+      title?: string;
+      description?: string;
+      locationPostcodeArea?: string;
+      /** @default GB */
+      locationCountry: string;
+    };
+    ListingDto_Output: {
+      id: string;
+      vehicleId: string;
+      vehicle: {
+        id: string;
+        ownerId: string;
+        derivativeId: string | null;
+        vehicleLookupId: string | null;
+        registration: string;
+        firstRegisteredAt: string | null;
+        mileageMiles: number;
+        ownersCount: number | null;
+        colourFamily:
+          | (
+              | 'BLACK'
+              | 'WHITE'
+              | 'BLUE'
+              | 'RED'
+              | 'GREEN'
+              | 'GREY'
+              | 'SILVER'
+              | 'YELLOW'
+              | 'ORANGE'
+              | 'PURPLE'
+              | 'BROWN'
+              | 'BEIGE'
+            )
+          | null;
+        manufacturerColourId: string | null;
+        interiorDescription: string | null;
+        upholstery: string | null;
+        ukSupplied: boolean;
+        imported: boolean;
+        importCountry: string | null;
+        serviceHistoryType: ('FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN') | null;
+        mainDealerHistory: boolean | null;
+        serviceRecordsAvailable: boolean | null;
+        accidentDeclared: boolean;
+        writeOffCategory: ('CAT_A' | 'CAT_B' | 'CAT_S' | 'CAT_N') | null;
+        dvlaTaxStatus: string | null;
+        dvlaMotStatus: string | null;
+        dvlaMotExpiryDate: string | null;
+        createdAt: string;
+        updatedAt: string;
+        equipment: {
+          id: string;
+          vehicleId: string;
+          equipmentId: string;
+          /** @enum {string} */
+          source: 'SELLER_DECLARED' | 'AI_DETECTED';
+        }[];
+        modifications: {
+          id: string;
+          vehicleId: string;
+          /** @enum {string} */
+          category:
+            | 'ECU_TUNE'
+            | 'EXHAUST'
+            | 'INTAKE'
+            | 'FORCED_INDUCTION'
+            | 'SUSPENSION'
+            | 'BRAKES'
+            | 'WHEELS'
+            | 'BODYWORK'
+            | 'INTERIOR'
+            | 'AUDIO'
+            | 'OTHER';
+          brand: string | null;
+          product: string | null;
+          description: string | null;
+        }[];
+      };
+      sellerId: string;
+      /** @enum {string} */
+      status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+      pricePence: number;
+      title: string | null;
+      description: string | null;
+      locationPostcodeArea: string | null;
+      locationCountry: string | null;
+      publishedAt: string | null;
+      reservedAt: string | null;
+      soldAt: string | null;
+      archivedAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+      priceHistory: {
+        id: string;
+        pricePence: number;
+        changedAt: string;
+      }[];
+    };
+    ListingPageDto_Output: {
+      items: {
+        id: string;
+        vehicleId: string;
+        vehicle: {
+          id: string;
+          ownerId: string;
+          derivativeId: string | null;
+          vehicleLookupId: string | null;
+          registration: string;
+          firstRegisteredAt: string | null;
+          mileageMiles: number;
+          ownersCount: number | null;
+          colourFamily:
+            | (
+                | 'BLACK'
+                | 'WHITE'
+                | 'BLUE'
+                | 'RED'
+                | 'GREEN'
+                | 'GREY'
+                | 'SILVER'
+                | 'YELLOW'
+                | 'ORANGE'
+                | 'PURPLE'
+                | 'BROWN'
+                | 'BEIGE'
+              )
+            | null;
+          manufacturerColourId: string | null;
+          interiorDescription: string | null;
+          upholstery: string | null;
+          ukSupplied: boolean;
+          imported: boolean;
+          importCountry: string | null;
+          serviceHistoryType: ('FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN') | null;
+          mainDealerHistory: boolean | null;
+          serviceRecordsAvailable: boolean | null;
+          accidentDeclared: boolean;
+          writeOffCategory: ('CAT_A' | 'CAT_B' | 'CAT_S' | 'CAT_N') | null;
+          dvlaTaxStatus: string | null;
+          dvlaMotStatus: string | null;
+          dvlaMotExpiryDate: string | null;
+          createdAt: string;
+          updatedAt: string;
+          equipment: {
+            id: string;
+            vehicleId: string;
+            equipmentId: string;
+            /** @enum {string} */
+            source: 'SELLER_DECLARED' | 'AI_DETECTED';
+          }[];
+          modifications: {
+            id: string;
+            vehicleId: string;
+            /** @enum {string} */
+            category:
+              | 'ECU_TUNE'
+              | 'EXHAUST'
+              | 'INTAKE'
+              | 'FORCED_INDUCTION'
+              | 'SUSPENSION'
+              | 'BRAKES'
+              | 'WHEELS'
+              | 'BODYWORK'
+              | 'INTERIOR'
+              | 'AUDIO'
+              | 'OTHER';
+            brand: string | null;
+            product: string | null;
+            description: string | null;
+          }[];
+        };
+        sellerId: string;
+        /** @enum {string} */
+        status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+        pricePence: number;
+        title: string | null;
+        description: string | null;
+        locationPostcodeArea: string | null;
+        locationCountry: string | null;
+        publishedAt: string | null;
+        reservedAt: string | null;
+        soldAt: string | null;
+        archivedAt: string | null;
+        createdAt: string;
+        updatedAt: string;
+        priceHistory: {
+          id: string;
+          pricePence: number;
+          changedAt: string;
+        }[];
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    };
+    UpdateListingRequestDto: {
+      pricePence?: number;
+      title?: string;
+      description?: string;
+      locationPostcodeArea?: string;
+      locationCountry?: string;
+    };
+    UpdateListingStatusRequestDto: {
+      /** @enum {string} */
+      status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+    };
+    CreateVehicleRequestDto: {
+      vehicleLookupId: string;
+      mileageMiles: number;
+      firstRegisteredAt?: string;
+      ownersCount?: number;
+      /** @enum {string} */
+      colourFamily?:
+        | 'BLACK'
+        | 'WHITE'
+        | 'BLUE'
+        | 'RED'
+        | 'GREEN'
+        | 'GREY'
+        | 'SILVER'
+        | 'YELLOW'
+        | 'ORANGE'
+        | 'PURPLE'
+        | 'BROWN'
+        | 'BEIGE';
+      manufacturerColourId?: string;
+      interiorDescription?: string;
+      upholstery?: string;
+      /** @default true */
+      ukSupplied: boolean;
+      /** @default false */
+      imported: boolean;
+      importCountry?: string;
+      /** @enum {string} */
+      serviceHistoryType?: 'FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN';
+      mainDealerHistory?: boolean;
+      serviceRecordsAvailable?: boolean;
+      /** @default false */
+      accidentDeclared: boolean;
+      /** @enum {string} */
+      writeOffCategory?: 'CAT_A' | 'CAT_B' | 'CAT_S' | 'CAT_N';
+    };
+    VehicleDto_Output: {
+      id: string;
+      ownerId: string;
+      derivativeId: string | null;
+      vehicleLookupId: string | null;
+      registration: string;
+      firstRegisteredAt: string | null;
+      mileageMiles: number;
+      ownersCount: number | null;
+      colourFamily:
+        | (
+            | 'BLACK'
+            | 'WHITE'
+            | 'BLUE'
+            | 'RED'
+            | 'GREEN'
+            | 'GREY'
+            | 'SILVER'
+            | 'YELLOW'
+            | 'ORANGE'
+            | 'PURPLE'
+            | 'BROWN'
+            | 'BEIGE'
+          )
+        | null;
+      manufacturerColourId: string | null;
+      interiorDescription: string | null;
+      upholstery: string | null;
+      ukSupplied: boolean;
+      imported: boolean;
+      importCountry: string | null;
+      serviceHistoryType: ('FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN') | null;
+      mainDealerHistory: boolean[];
+      serviceRecordsAvailable: boolean[];
+      accidentDeclared: boolean;
+      writeOffCategory: ('CAT_A' | 'CAT_B' | 'CAT_S' | 'CAT_N') | null;
+      dvlaTaxStatus: string | null;
+      dvlaMotStatus: string | null;
+      dvlaMotExpiryDate: string | null;
+      createdAt: string;
+      updatedAt: string;
+      equipment: {
+        id: string;
+        vehicleId: string;
+        equipmentId: string;
+        /** @enum {string} */
+        source: 'SELLER_DECLARED' | 'AI_DETECTED';
+      }[];
+      modifications: {
+        id: string;
+        vehicleId: string;
+        /** @enum {string} */
+        category:
+          | 'ECU_TUNE'
+          | 'EXHAUST'
+          | 'INTAKE'
+          | 'FORCED_INDUCTION'
+          | 'SUSPENSION'
+          | 'BRAKES'
+          | 'WHEELS'
+          | 'BODYWORK'
+          | 'INTERIOR'
+          | 'AUDIO'
+          | 'OTHER';
+        brand: string | null;
+        product: string | null;
+        description: string | null;
+      }[];
+    };
+    UpdateVehicleRequestDto: {
+      mileageMiles?: number;
+      firstRegisteredAt?: string;
+      ownersCount?: number;
+      /** @enum {string} */
+      colourFamily?:
+        | 'BLACK'
+        | 'WHITE'
+        | 'BLUE'
+        | 'RED'
+        | 'GREEN'
+        | 'GREY'
+        | 'SILVER'
+        | 'YELLOW'
+        | 'ORANGE'
+        | 'PURPLE'
+        | 'BROWN'
+        | 'BEIGE';
+      manufacturerColourId?: string;
+      interiorDescription?: string;
+      upholstery?: string;
+      /** @default true */
+      ukSupplied: boolean;
+      /** @default false */
+      imported: boolean;
+      importCountry?: string;
+      /** @enum {string} */
+      serviceHistoryType?: 'FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN';
+      mainDealerHistory?: boolean;
+      serviceRecordsAvailable?: boolean;
+      /** @default false */
+      accidentDeclared: boolean;
+      /** @enum {string} */
+      writeOffCategory?: 'CAT_A' | 'CAT_B' | 'CAT_S' | 'CAT_N';
+    };
+    AddVehicleEquipmentRequestDto: {
+      equipmentId: string;
+      /**
+       * @default SELLER_DECLARED
+       * @enum {string}
+       */
+      source: 'SELLER_DECLARED' | 'AI_DETECTED';
+    };
+    VehicleEquipmentItemDto_Output: {
+      id: string;
+      vehicleId: string;
+      equipmentId: string;
+      /** @enum {string} */
+      source: 'SELLER_DECLARED' | 'AI_DETECTED';
+    };
+    CreateVehicleModificationRequestDto: {
+      /** @enum {string} */
+      category:
+        | 'ECU_TUNE'
+        | 'EXHAUST'
+        | 'INTAKE'
+        | 'FORCED_INDUCTION'
+        | 'SUSPENSION'
+        | 'BRAKES'
+        | 'WHEELS'
+        | 'BODYWORK'
+        | 'INTERIOR'
+        | 'AUDIO'
+        | 'OTHER';
+      brand?: string;
+      product?: string;
+      description?: string;
+    };
+    VehicleModificationItemDto_Output: {
+      id: string;
+      vehicleId: string;
+      /** @enum {string} */
+      category:
+        | 'ECU_TUNE'
+        | 'EXHAUST'
+        | 'INTAKE'
+        | 'FORCED_INDUCTION'
+        | 'SUSPENSION'
+        | 'BRAKES'
+        | 'WHEELS'
+        | 'BODYWORK'
+        | 'INTERIOR'
+        | 'AUDIO'
+        | 'OTHER';
+      brand: string | null;
+      product: string | null;
+      description: string | null;
+    };
+    MediaDto_Output: {
+      id: string;
+      listingId: string;
+      category:
+        ('EXTERIOR' | 'INTERIOR' | 'ENGINE' | 'BOOT' | 'DAMAGE' | 'DOCUMENT' | 'OTHER') | null;
+      categoryConfidence: number | null;
+      categorySource: ('SELLER_DECLARED' | 'AI_DETECTED') | null;
+      /** @enum {string} */
+      status: 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED';
+      errorMessage: string | null;
+      originalUrl: string;
+      largeUrl: string | null;
+      mediumUrl: string | null;
+      thumbnailUrl: string | null;
+      position: number;
+      createdAt: string;
+      updatedAt: string;
+    };
+    MediaListDto_Output: {
+      root?: {
+        id: string;
+        listingId: string;
+        category:
+          ('EXTERIOR' | 'INTERIOR' | 'ENGINE' | 'BOOT' | 'DAMAGE' | 'DOCUMENT' | 'OTHER') | null;
+        categoryConfidence: number | null;
+        categorySource: ('SELLER_DECLARED' | 'AI_DETECTED') | null;
+        /** @enum {string} */
+        status: 'PENDING' | 'PROCESSING' | 'DONE' | 'FAILED';
+        errorMessage: string | null;
+        originalUrl: string;
+        largeUrl: string | null;
+        mediumUrl: string | null;
+        thumbnailUrl: string | null;
+        position: number;
+        createdAt: string;
+        updatedAt: string;
+      }[];
+    };
+    MediaCoverageDto_Output: {
+      counts: {
+        [key: string]: number;
+      };
+      missing: ('EXTERIOR' | 'INTERIOR' | 'ENGINE' | 'BOOT' | 'DAMAGE' | 'DOCUMENT' | 'OTHER')[];
+    };
+    ReorderMediaRequestDto: {
+      mediaIds: string[];
+    };
+    UpdateMediaCategoryRequestDto: {
+      /** @enum {string} */
+      category: 'EXTERIOR' | 'INTERIOR' | 'ENGINE' | 'BOOT' | 'DAMAGE' | 'DOCUMENT' | 'OTHER';
+    };
     DvlaLookupRequestDto: {
       registration: string;
     };
@@ -1008,6 +1670,30 @@ export interface operations {
       };
     };
   };
+  ListingsController_list: {
+    parameters: {
+      query?: {
+        sellerId?: string;
+        status?: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+        page?: number;
+        pageSize?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingPageDto_Output'];
+        };
+      };
+    };
+  };
   ListingsController_create: {
     parameters: {
       query?: never;
@@ -1015,13 +1701,388 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateListingRequestDto'];
+      };
+    };
     responses: {
       201: {
         headers: {
           [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['ListingDto_Output'];
+        };
+      };
+    };
+  };
+  ListingsController_getById: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingDto_Output'];
+        };
+      };
+    };
+  };
+  ListingsController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateListingRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingDto_Output'];
+        };
+      };
+    };
+  };
+  ListingsController_updateStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateListingStatusRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ListingDto_Output'];
+        };
+      };
+    };
+  };
+  VehiclesController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateVehicleRequestDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VehicleDto_Output'];
+        };
+      };
+    };
+  };
+  VehiclesController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateVehicleRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VehicleDto_Output'];
+        };
+      };
+    };
+  };
+  VehiclesController_addEquipment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AddVehicleEquipmentRequestDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VehicleEquipmentItemDto_Output'];
+        };
+      };
+    };
+  };
+  VehiclesController_removeEquipment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        eqId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
         content?: never;
+      };
+    };
+  };
+  VehiclesController_addModification: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateVehicleModificationRequestDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['VehicleModificationItemDto_Output'];
+        };
+      };
+    };
+  };
+  VehiclesController_removeModification: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        modId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MediaController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaListDto_Output'];
+        };
+      };
+    };
+  };
+  MediaController_upload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          file?: string;
+        };
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaDto_Output'];
+        };
+      };
+    };
+  };
+  MediaController_coverage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaCoverageDto_Output'];
+        };
+      };
+    };
+  };
+  MediaController_reorder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReorderMediaRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaListDto_Output'];
+        };
+      };
+    };
+  };
+  MediaController_remove: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MediaController_updateCategory: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateMediaCategoryRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaDto_Output'];
+        };
+      };
+    };
+  };
+  MediaController_retry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MediaDto_Output'];
+        };
       };
     };
   };
