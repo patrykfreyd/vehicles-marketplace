@@ -99,6 +99,25 @@ export const EnvSchema = z.object({
     .string()
     .url()
     .default('https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles'),
+
+  // --- Plan 12 (Image Upload & Processing Pipeline) ---
+  // Where `LocalStorageService` (packages/storage) reads/writes originals
+  // and generated variants — Plan 02's `/data/uploads` on Test/Production,
+  // a project-relative path locally (see .env.example). Defaulted rather
+  // than required: a missing value shouldn't stop every other module's
+  // tests from booting, and Local's default already matches .env.example.
+  UPLOAD_ROOT: z.string().min(1).default('./.data/uploads'),
+  // Base URL the Local layout above is served from — used to build the
+  // public `url` LocalStorageService returns alongside each variant's
+  // storage-relative `path`.
+  PUBLIC_UPLOAD_URL: z.string().url().default('http://localhost:3001/uploads'),
+
+  // Reused from Plan 09's `OPENAI_API_KEY`/`OPENAI_MODEL` above for
+  // `VisionAiClient` (§6) — same config-presence pattern as `DvlaClient`:
+  // blank selects the fixture-backed fake, a real key selects the real
+  // OpenAI-backed classifier. No separate vision-specific key: one OpenAI
+  // account covers both `catalogue enrich` and photo classification.
+  OPENAI_VISION_MODEL: z.string().default('gpt-4o-mini'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

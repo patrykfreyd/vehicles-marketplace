@@ -12,6 +12,7 @@
     "generate:openapi": "dotenv -e ../../.env.local -- node -r ts-node/register scripts/generate-openapi.ts"
   },
   "dependencies": {
+    "@nestjs/bullmq": "12.0.0",
     "@nestjs/common": "12.0.1",
     "@nestjs/config": "12.0.0",
     "@nestjs/core": "12.0.1",
@@ -22,11 +23,14 @@
     "@vehicles-marketplace/catalogue-types": "workspace:*",
     "@vehicles-marketplace/config": "workspace:*",
     "@vehicles-marketplace/db": "workspace:*",
+    "@vehicles-marketplace/storage": "workspace:*",
     "@vehicles-marketplace/utils": "workspace:*",
     "@vehicles-marketplace/validation": "workspace:*",
     "better-auth": "1.7.4",
+    "bullmq": "6.3.4",
     "express": "5.2.1",
     "express-basic-auth": "1.2.1",
+    "heic-convert": "2.1.0",
     "helmet": "8.3.0",
     "ioredis": "6.0.0",
     "nestjs-pino": "5.1.0",
@@ -41,6 +45,8 @@
   "devDependencies": {
     "@nestjs/testing": "12.0.1",
     "@types/express": "5.0.6",
+    "@types/heic-convert": "2.1.1",
+    "@types/multer": "2.3.0",
     "@types/node": "22.20.2",
     "@types/nodemailer": "6.4.21",
     "@types/pg": "8.23.1",

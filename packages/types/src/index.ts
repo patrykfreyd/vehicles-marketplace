@@ -22,6 +22,10 @@ import type {
   HealthStatus,
   Listing,
   ListingStatus,
+  Media,
+  MediaCategory,
+  MediaCoverage,
+  MediaStatus,
   ModificationCategory,
   MoneyPence,
   PageRequest,
@@ -45,6 +49,10 @@ export type {
   HealthStatus,
   Listing,
   ListingStatus,
+  Media,
+  MediaCategory,
+  MediaCoverage,
+  MediaStatus,
   ModificationCategory,
   MoneyPence,
   PageRequest,
@@ -71,3 +79,6 @@ export type SellerProfileId = Id<'SellerProfile'>;
 // Plan 11 (Vehicle & Listing Data Model) — the entities this plan introduces.
 export type VehicleId = Id<'Vehicle'>;
 export type ListingId = Id<'Listing'>;
+
+// Plan 12 (Image Upload & Processing Pipeline) — the entity this plan introduces.
+export type MediaId = Id<'Media'>;

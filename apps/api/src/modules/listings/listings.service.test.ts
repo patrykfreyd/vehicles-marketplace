@@ -102,7 +102,11 @@ describe.skipIf(!canRunAgainstRealDb)('ListingsService', () => {
 
   async function addPhoto(listingId: string) {
     await db.media.create({
-      data: { id: createId('med'), listingId, path: `/fixtures/${listingId}.jpg` },
+      data: {
+        id: createId('med'),
+        listingId,
+        originalPath: `listings/${listingId}/original/fixture.jpg`,
+      },
     });
   }
 

@@ -1,14 +1,51 @@
-// Stub; full fields (image-category enum, large/medium/thumbnail variant
-// paths) land in Plan 12 — see
-// plans/06-database-schema-migrations-baseline.md §4/§7.
+// plans/12-image-upload-processing-pipeline.md §5 — extends Plan 06's bare
+// stub into its full shape: upload/processing status, the three generated
+// WebP variants (large/medium/thumbnail, Original kept as-is), and AI
+// classification into the stack doc §13 taxonomy. `categorySource` reuses
+// `EquipmentSource` (Plan 11) rather than inventing a parallel enum, since
+// it's the same "AI_DETECTED vs SELLER_DECLARED" distinction.
+//
+// `isCoverPhoto` is deliberately not added here — see §5's note; Plan 21
+// owns it and will extend this model when it's built.
+
+enum MediaCategory {
+  EXTERIOR
+  INTERIOR
+  ENGINE
+  BOOT
+  DAMAGE
+  DOCUMENT
+  OTHER
+}
+
+enum MediaStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
 model Media {
-  id        String   @id
-  listingId String   @map("listing_id")
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  path      String
+  id        String  @id
+  listingId String  @map("listing_id")
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  category           MediaCategory?   @map("category") // null until classified or manually set
+  categoryConfidence Float?           @map("category_confidence")
+  categorySource     EquipmentSource? @map("category_source")
+
+  status       MediaStatus @default(PENDING)
+  errorMessage String?     @map("error_message")
+
+  originalPath  String  @map("original_path")
+  largePath     String? @map("large_path")
+  mediumPath    String? @map("medium_path")
+  thumbnailPath String? @map("thumbnail_path")
+
   position  Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([listingId])
+  @@index([listingId, position])
   @@map("media")
 }

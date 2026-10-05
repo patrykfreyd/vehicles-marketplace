@@ -12,12 +12,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { loadEnv, type Env } from '@vehicles-marketplace/config';
 import { DbModule } from './common/db/db.module';
+import { StorageModule } from './common/storage/storage.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { ImageProcessingModule } from './modules/image-processing/image-processing.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: loadEnv }),
     DbModule,
+    StorageModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => ({
@@ -31,6 +34,7 @@ import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
       }),
     }),
     DiagnosticsModule,
+    ImageProcessingModule,
   ],
 })
 export class WorkerModule {}

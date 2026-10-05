@@ -225,8 +225,15 @@ export class ListingsService {
     }
   }
 
-  /** Every mutating endpoint's ownership check (§3: `listing.sellerId === currentUser.id || currentUser.isAdmin`, written explicitly per Plan 07 §5's rule). The caller already supplied `listingId`, so a missing/foreign listing is 404/403 respectively. */
-  private async requireOwnedListingForMutation(
+  /**
+   * Every mutating endpoint's ownership check (§3: `listing.sellerId ===
+   * currentUser.id || currentUser.isAdmin`, written explicitly per Plan 07
+   * §5's rule). The caller already supplied `listingId`, so a missing/
+   * foreign listing is 404/403 respectively. Public (mirroring
+   * `VehiclesService.requireOwnedVehicle`) so Plan 12's `MediaService`
+   * reuses this exact rule instead of duplicating it.
+   */
+  async requireOwnedListingForMutation(
     listingId: string,
     currentUser: CurrentUserType,
   ): Promise<ListingRow> {

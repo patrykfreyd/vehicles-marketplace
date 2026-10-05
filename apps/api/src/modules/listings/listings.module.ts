@@ -7,5 +7,6 @@ import { ListingsService } from './listings.service';
   imports: [VehiclesModule],
   controllers: [ListingsController],
   providers: [ListingsService],
+  exports: [ListingsService],
 })
 export class ListingsModule {}
