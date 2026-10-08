@@ -16,6 +16,7 @@ import { db } from '@vehicles-marketplace/db';
 import { createId } from '@vehicles-marketplace/utils';
 import type { CurrentUser } from '@vehicles-marketplace/validation';
 import type { StorageService } from '@vehicles-marketplace/storage';
+import { FakePostcodeGeocoder } from '../listings/geocoding/postcode-geocoder.fake';
 import { ListingsService } from '../listings/listings.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { MAX_PHOTOS_PER_LISTING, type ImageProcessingJobData } from './media.constants';
@@ -80,7 +81,7 @@ function fakeFile(overrides: Partial<Express.Multer.File> = {}): Express.Multer.
 
 describe.skipIf(!canRunAgainstRealDb)('MediaService', () => {
   const vehiclesService = new VehiclesService();
-  const listingsService = new ListingsService(vehiclesService);
+  const listingsService = new ListingsService(vehiclesService, new FakePostcodeGeocoder());
   let storage: FakeStorageService;
   let queue: FakeQueue;
   let service: MediaService;

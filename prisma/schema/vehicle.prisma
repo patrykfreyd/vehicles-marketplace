@@ -82,6 +82,10 @@ model Vehicle {
   listing       Listing?
 
   @@index([ownerId])
+  // plans/13-search-filtering.md §4 — standard filter/sort columns.
+  @@index([mileageMiles])
+  @@index([colourFamily])
+  @@index([firstRegisteredAt])
   @@map("vehicles")
 }
 

@@ -5,6 +5,7 @@
  */
 import {
   ConflictException,
+  Inject,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -21,6 +22,8 @@ import type {
 } from '@vehicles-marketplace/validation';
 import { maskRegistration } from '@vehicles-marketplace/validation';
 import { VehiclesService } from '../vehicles/vehicles.service';
+import { PostcodeNotFoundError, type PostcodeGeocoder } from './geocoding/postcode-geocoder';
+import { POSTCODE_GEOCODER } from './geocoding/postcode-geocoder.tokens';
 
 /**
  * §7's allowed-transition table. `SOLD`/`ARCHIVED` have no outgoing
@@ -40,7 +43,10 @@ const PUBLICLY_VISIBLE_STATUSES = new Set(['LIVE', 'RESERVED']);
 
 @Injectable()
 export class ListingsService {
-  constructor(private readonly vehiclesService: VehiclesService) {}
+  constructor(
+    private readonly vehiclesService: VehiclesService,
+    @Inject(POSTCODE_GEOCODER) private readonly postcodeGeocoder: PostcodeGeocoder,
+  ) {}
 
   /** §10's second acceptance criterion — creating against a vehicle the caller doesn't own is a 403 (`VehiclesService.requireOwnedVehicle` already draws exactly this line). */
   async create(currentUser: CurrentUserType, input: CreateListingRequest): Promise<Listing> {
@@ -49,6 +55,31 @@ export class ListingsService {
     const existingListing = await db.listing.findUnique({ where: { vehicleId: vehicle.id } });
     if (existingListing) {
       throw new ConflictException('This vehicle already has a listing.');
+    }
+
+    /**
+     * plans/13-search-filtering.md §3/§4 — a `postcode` geocodes into the
+     * public `latitude`/`longitude` distance search sorts on, and derives
+     * the public `locationPostcodeArea` (overriding any directly-supplied
+     * value, since a full postcode is strictly more authoritative). A bad
+     * postcode is a 404, not a 500 — same "don't surface the provider's raw
+     * error" convention as `VehicleLookupService.lookupByRegistration`.
+     */
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    let locationPostcodeArea = input.locationPostcodeArea ?? null;
+    if (input.postcode) {
+      try {
+        const geocoded = await this.postcodeGeocoder.geocode(input.postcode);
+        latitude = geocoded.latitude;
+        longitude = geocoded.longitude;
+        locationPostcodeArea = geocoded.postcodeArea;
+      } catch (error) {
+        if (error instanceof PostcodeNotFoundError) {
+          throw new NotFoundException("We couldn't find that postcode.");
+        }
+        throw error;
+      }
     }
 
     const listingId = createId('lst');
@@ -61,8 +92,11 @@ export class ListingsService {
           pricePence: input.pricePence,
           title: input.title,
           description: input.description,
-          locationPostcodeArea: input.locationPostcodeArea,
+          sellerPostcode: input.postcode,
+          locationPostcodeArea,
           locationCountry: input.locationCountry,
+          latitude,
+          longitude,
         },
       });
       await tx.listingPriceHistory.create({

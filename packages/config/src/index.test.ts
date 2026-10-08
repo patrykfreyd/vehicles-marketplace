@@ -30,6 +30,7 @@ describe('loadEnv', () => {
       UPLOAD_ROOT: './.data/uploads',
       PUBLIC_UPLOAD_URL: 'http://localhost:3001/uploads',
       OPENAI_VISION_MODEL: 'gpt-4o-mini',
+      POSTCODES_IO_BASE_URL: 'https://api.postcodes.io',
       ...validEnv,
     });
   });

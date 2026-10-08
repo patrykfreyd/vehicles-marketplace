@@ -118,6 +118,14 @@ export const EnvSchema = z.object({
   // OpenAI-backed classifier. No separate vision-specific key: one OpenAI
   // account covers both `catalogue enrich` and photo classification.
   OPENAI_VISION_MODEL: z.string().default('gpt-4o-mini'),
+
+  // --- Plan 13 (Search & Filtering) ---
+  // postcodes.io (§3/§10.1: confirmed free/keyless/UK-specific for V1) —
+  // geocodes a seller's postcode into `Listing.latitude`/`longitude` at
+  // listing-creation time. No API key, unlike `DVLA_API_KEY`/
+  // `OPENAI_API_KEY` above: `ListingsModule` always wires the real HTTP
+  // client, in every environment.
+  POSTCODES_IO_BASE_URL: z.string().url().default('https://api.postcodes.io'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
