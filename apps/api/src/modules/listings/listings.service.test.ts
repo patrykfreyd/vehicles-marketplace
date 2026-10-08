@@ -11,6 +11,11 @@ import { db } from '@vehicles-marketplace/db';
 import { createId } from '@vehicles-marketplace/utils';
 import type { CurrentUser } from '@vehicles-marketplace/validation';
 import { VehiclesService } from '../vehicles/vehicles.service';
+import {
+  FakePostcodeGeocoder,
+  FIXTURE_POSTCODE_MACCLESFIELD,
+  FIXTURE_POSTCODE_NOT_FOUND,
+} from './geocoding/postcode-geocoder.fake';
 import { ListingsService } from './listings.service';
 
 const canRunAgainstRealDb = process.env.API_TEST_HAS_REAL_DB === 'true';
@@ -28,7 +33,7 @@ function user(id: string, overrides: Partial<CurrentUser> = {}): CurrentUser {
 
 describe.skipIf(!canRunAgainstRealDb)('ListingsService', () => {
   const vehiclesService = new VehiclesService();
-  const service = new ListingsService(vehiclesService);
+  const service = new ListingsService(vehiclesService, new FakePostcodeGeocoder());
 
   const sellerId = 'test-lst-seller';
   const otherUserId = 'test-lst-other';
@@ -146,6 +151,35 @@ describe.skipIf(!canRunAgainstRealDb)('ListingsService', () => {
         locationCountry: 'GB',
       }),
     ).rejects.toThrow(ConflictException);
+  });
+
+  describe('postcode geocoding (plans/13-search-filtering.md §3/§4)', () => {
+    it('geocodes a given postcode into latitude/longitude and a derived locationPostcodeArea', async () => {
+      const listing = await service.create(user(sellerId), {
+        vehicleId: publishableVehicleId,
+        pricePence: 2649500,
+        postcode: FIXTURE_POSTCODE_MACCLESFIELD,
+        locationCountry: 'GB',
+      });
+
+      expect(listing.locationPostcodeArea).toBe('SK');
+
+      const row = await db.listing.findUniqueOrThrow({ where: { id: listing.id } });
+      expect(row.latitude).toBeCloseTo(53.2588, 2);
+      expect(row.longitude).toBeCloseTo(-2.1309, 2);
+      expect(row.sellerPostcode).toBe(FIXTURE_POSTCODE_MACCLESFIELD);
+    });
+
+    it('404s for a postcode the geocoder has no record for', async () => {
+      await expect(
+        service.create(user(sellerId), {
+          vehicleId: publishableVehicleId,
+          pricePence: 2649500,
+          postcode: FIXTURE_POSTCODE_NOT_FOUND,
+          locationCountry: 'GB',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('reading a listing', () => {

@@ -189,6 +189,15 @@ model Derivative {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([generationId])
+  // plans/13-search-filtering.md §4 — standard/advanced filter columns.
+  @@index([status])
+  @@index([bodyStyle])
+  @@index([fuel])
+  @@index([drivetrain])
+  @@index([powerBhp])
+  @@index([engineFamily])
+  // plans/13-search-filtering.md §4 — free-text fuzzy matching.
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_derivative_name_trgm")
   @@map("derivatives")
 }
 
@@ -240,6 +249,8 @@ model CatalogueAlias {
 
   @@index([entityType, entityId])
   @@index([alias])
+  // plans/13-search-filtering.md §4 — free-text fuzzy matching.
+  @@index([alias(ops: raw("gin_trgm_ops"))], type: Gin, map: "idx_catalogue_alias_trgm")
   @@map("catalogue_aliases")
 }
 

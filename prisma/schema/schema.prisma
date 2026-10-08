@@ -10,11 +10,19 @@
 // `node_modules/@prisma/client` location, and packages/db/src/client.ts
 // imports it from there, wrapped in a single shared singleton (§2's
 // "client access pattern" decision).
+// `postgresqlExtensions` (plans/13-search-filtering.md §4) — lets
+// `catalogue.prisma`'s two GIN trigram indexes be declared natively
+// instead of living only as hand-added SQL in one migration file; without
+// this, every future `prisma migrate dev` re-diffs schema.prisma against
+// the database, finds those two indexes "unaccounted for", and proposes
+// dropping them.
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]
 }

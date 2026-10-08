@@ -16,11 +16,11 @@ import { StorageModule } from './common/storage/storage.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmailVerificationDeadlineGuard } from './modules/auth/email-verification-deadline.guard';
-import { CatalogueModule } from './modules/catalogue/catalogue.module';
 import { CatalogueAdminModule } from './modules/catalogue-admin/catalogue-admin.module';
 import { HealthModule } from './modules/health/health.module';
 import { ListingsModule } from './modules/listings/listings.module';
 import { MediaModule } from './modules/media/media.module';
+import { SearchModule } from './modules/search/search.module';
 import { VehicleLookupModule } from './modules/vehicle-lookup/vehicle-lookup.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
@@ -62,11 +62,11 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
       }),
     }),
     AuthModule,
-    CatalogueModule,
     CatalogueAdminModule,
     HealthModule,
     ListingsModule,
     MediaModule,
+    SearchModule,
     VehicleLookupModule,
     VehiclesModule,
     // Wildcard fallback — must stay last so every real module's routes are

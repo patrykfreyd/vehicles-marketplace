@@ -28,6 +28,17 @@ model Listing {
   locationPostcodeArea String? @map("location_postcode_area")
   locationCountry      String? @default("GB") @map("location_country")
 
+  // plans/13-search-filtering.md §3/§4 — the seller's full postcode,
+  // captured at creation only to geocode `latitude`/`longitude` below; it
+  // is deliberately absent from `ListingSchema` (packages/validation) so
+  // it's never serialized to a client. `latitude`/`longitude` are public,
+  // city/area-precision coordinates derived from it via postcodes.io —
+  // good enough for "18 miles away" sorting without exposing the seller's
+  // exact address.
+  sellerPostcode String? @map("seller_postcode")
+  latitude       Float?  @map("latitude")
+  longitude      Float?  @map("longitude")
+
   publishedAt DateTime? @map("published_at")
   reservedAt  DateTime? @map("reserved_at")
   soldAt      DateTime? @map("sold_at")
@@ -41,6 +52,7 @@ model Listing {
 
   @@index([sellerId])
   @@index([status])
+  @@index([pricePence])
   @@map("listings")
 }
 

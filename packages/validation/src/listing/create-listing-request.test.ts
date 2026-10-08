@@ -23,4 +23,24 @@ describe('CreateListingRequestSchema', () => {
       CreateListingRequestSchema.safeParse({ vehicleId: 'veh_01', pricePence: -1 }).success,
     ).toBe(false);
   });
+
+  it('accepts an optional, well-formed postcode', () => {
+    expect(
+      CreateListingRequestSchema.safeParse({
+        vehicleId: 'veh_01',
+        pricePence: 100,
+        postcode: 'SK11 9DL',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects a malformed postcode', () => {
+    expect(
+      CreateListingRequestSchema.safeParse({
+        vehicleId: 'veh_01',
+        pricePence: 100,
+        postcode: 'not a postcode',
+      }).success,
+    ).toBe(false);
+  });
 });

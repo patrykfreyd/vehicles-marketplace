@@ -51,10 +51,13 @@ export * from './listing/create-listing-request';
 export * from './listing/update-listing-request';
 export * from './listing/update-listing-status-request';
 export * from './listing/list-listings-query';
+export * from './listing/postcode';
 export * from './media/media';
 export * from './media/media-coverage';
 export * from './media/reorder-media-request';
 export * from './media/update-media-category-request';
+export * from './search/search-request';
+export * from './search/search-result';
 
 export const HealthCheckSchema = z.object({
   status: z.enum(['ok', 'error']),
