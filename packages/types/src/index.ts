@@ -80,6 +80,14 @@ export type {
  */
 export type Id<Brand extends string> = string & { readonly __brand: Brand };
 
+export type {
+  AiSearchFilter,
+  AiMessageRequest,
+  AiMessageResponse,
+  CarFinderCriteria,
+  CarRecommendation,
+} from '@vehicles-marketplace/validation';
+
 // Plan 07 (Auth) — the entities this plan introduces.
 export type UserId = Id<'User'>;
 export type SellerProfileId = Id<'SellerProfile'>;

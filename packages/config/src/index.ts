@@ -81,6 +81,8 @@ export const EnvSchema = z.object({
   // constraints `enrich` needs — overridable without a code change once a
   // cheaper/better option exists.
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  // Plan 14: independent from catalogue generation and image classification.
+  OPENAI_SEARCH_MODEL: z.string().min(1).default('gpt-5.6-luna'),
 
   // --- Plan 10 (DVLA Vehicle Lookup & Seller Matching) ---
   // DVLA Vehicle Enquiry Service (VES) API key — left blank until DVLA

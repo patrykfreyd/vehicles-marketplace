@@ -25,6 +25,7 @@ describe('loadEnv', () => {
       EMAIL_FROM: 'Vehicles Marketplace <no-reply@example.co.uk>',
       OPENAI_API_KEY: '',
       OPENAI_MODEL: 'gpt-4o-mini',
+      OPENAI_SEARCH_MODEL: 'gpt-5.6-luna',
       DVLA_API_KEY: '',
       DVLA_API_BASE_URL: 'https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles',
       UPLOAD_ROOT: './.data/uploads',

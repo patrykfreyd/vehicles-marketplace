@@ -1,6 +1,33 @@
 # Plan 14 — AI Natural-Language Search & Car Finder
 
-Status: Draft
+Status: Implemented (2026-10-08; implementation details in `docs/ai-search.md`)
+
+## Confirmed decisions and implementation record
+
+The following supersedes the original provider/access proposals below:
+
+- **11.1:** Use the low-cost OpenAI `gpt-5.6-luna` model, configurable through
+  `OPENAI_SEARCH_MODEL`, reusing `OPENAI_API_KEY`. Strict function calling,
+  low reasoning effort, bounded output, timeout and one retry are implemented.
+- **11.2:** Confirmed **60 messages per rolling hour per user**, shared across
+  both features via an atomic Redis limiter.
+- **11.3:** Only authenticated, registered users with **verified email** may
+  access either AI feature. Conventional search remains public.
+- Web/mobile AI Search, Car Finder and a functional conventional fallback are
+  implemented, with private Redis conversations and generated API client types.
+- Explanation generation selects verified inventory fact IDs; code renders the
+  prose. This prevents unsupported claims structurally, beyond prompt grounding.
+- Finder scores up to 100 real candidates using explicit body-style, power,
+  purchase-price and mileage preferences. The UI discloses this candidate scope.
+  Economy/seating/condition/history are not inferred from absent measurements.
+- Tests are deterministic provider-fixture tests; no paid live-provider call or
+  physical-device verification is implied by implementation status.
+- Validation: lint, typecheck, build and all 17 workspace test tasks pass;
+  test execution used one package at a time and two workers to avoid local
+  resource-contention timeouts. Existing infrastructure-dependent skips remain.
+
+See `docs/ai-search.md` for configuration, scoring formulas, failure handling,
+telemetry and the intentional departures from the original draft below.
 Depends on: Plan 13 (`SearchRequestSchema` and the search service AI
 output must resolve into), Plan 03 (Zod-as-source-of-truth convention),
 Plan 05 (Nest module), Plan 02 (`AI_API_KEY` — this plan is where the

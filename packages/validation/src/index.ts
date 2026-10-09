@@ -11,6 +11,7 @@
 import { z } from 'zod';
 
 export * from './auth/current-user';
+export * from './ai-search';
 export * from './auth/forgot-password-request';
 export * from './auth/login-request';
 export * from './auth/password';

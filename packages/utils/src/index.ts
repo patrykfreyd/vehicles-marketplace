@@ -4,6 +4,7 @@
  */
 export { createId } from './ids';
 export { deriveDisplayNameFromEmail } from './display-name';
+export { searchFilterSummary } from './search-filter-summary';
 
 /** Exhaustiveness helper for switch/if-else chains over a union type. */
 export function assertNever(value: never): never {

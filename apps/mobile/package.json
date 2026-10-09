@@ -15,6 +15,7 @@
     "@hookform/resolvers": "5.9.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@vehicles-marketplace/design-tokens": "workspace:*",
+    "@vehicles-marketplace/api-client": "workspace:*",
     "@vehicles-marketplace/ui-mobile": "workspace:*",
     "@vehicles-marketplace/utils": "workspace:*",
     "@vehicles-marketplace/validation": "workspace:*",
