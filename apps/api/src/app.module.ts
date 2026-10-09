@@ -21,6 +21,7 @@ import { HealthModule } from './modules/health/health.module';
 import { ListingsModule } from './modules/listings/listings.module';
 import { MediaModule } from './modules/media/media.module';
 import { SearchModule } from './modules/search/search.module';
+import { AiSearchModule } from './modules/ai-search/ai-search.module';
 import { VehicleLookupModule } from './modules/vehicle-lookup/vehicle-lookup.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
@@ -67,6 +68,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     ListingsModule,
     MediaModule,
     SearchModule,
+    AiSearchModule,
     VehicleLookupModule,
     VehiclesModule,
     // Wildcard fallback — must stay last so every real module's routes are

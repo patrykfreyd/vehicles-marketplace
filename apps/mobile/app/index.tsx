@@ -32,6 +32,9 @@ export default function HomeScreen() {
     <View style={containerStyle}>
       <Text style={titleStyle}>Vehicles Marketplace</Text>
       <Text>{buildHealthMessage(health)}</Text>
+      <Link href="/search">Search cars</Link>
+      <Link href="/ai-search">AI Search</Link>
+      <Link href="/car-finder">AI Car Finder</Link>
       <Link href="/dev-components" style={{ marginTop: 12, color: '#2151FF' } as TextStyle}>
         Component demo
       </Link>

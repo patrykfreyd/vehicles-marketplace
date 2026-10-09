@@ -4,22 +4,6 @@
  */
 
 export interface paths {
-  '/api/v1/catalogue/derivatives': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get: operations['CatalogueController_listDerivatives'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/v1/catalogue-admin/manufacturers': {
     parameters: {
       query?: never;
@@ -436,6 +420,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/search': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['SearchController_search'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ai-search/message': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['AiSearchController_message'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/ai-search/car-finder/message': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['AiSearchController_carFinder'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/vehicle-lookup/dvla': {
     parameters: {
       query?: never;
@@ -520,78 +552,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    PublishedDerivativePageDto_Output: {
-      items: {
-        id: string;
-        generationId: string;
-        name: string;
-        /** @default false */
-        specialEdition: boolean;
-        /** @enum {string} */
-        bodyStyle:
-          'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
-        doors?: number;
-        seats?: number;
-        /** @enum {string} */
-        fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
-        engineCapacityCc?: number;
-        cylinders?: number;
-        /** @enum {string} */
-        configuration?:
-          | 'INLINE_3'
-          | 'INLINE_4'
-          | 'INLINE_5'
-          | 'INLINE_6'
-          | 'V6'
-          | 'V8'
-          | 'V10'
-          | 'V12'
-          | 'FLAT_4'
-          | 'FLAT_6'
-          | 'ELECTRIC_MOTOR';
-        /** @enum {string} */
-        aspiration?: 'NATURALLY_ASPIRATED' | 'TURBO' | 'TWIN_TURBO' | 'SUPERCHARGED' | 'ELECTRIC';
-        engineFamily?: string;
-        powerBhp?: number;
-        torqueNm?: number;
-        /** @default [] */
-        transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
-        /** @enum {string} */
-        drivetrain: 'FWD' | 'RWD' | 'AWD';
-        drivetrainManufacturerName?: string;
-        zeroToSixtyTwoSeconds?: number;
-        topSpeedMph?: number;
-        /**
-         * @default AI_DRAFT
-         * @enum {string}
-         */
-        status:
-          | 'IMPORTED'
-          | 'AI_DRAFT'
-          | 'REVIEW_REQUIRED'
-          | 'SOURCE_CONFIRMED'
-          | 'APPROVED'
-          | 'DEPRECATED';
-        confidence?: number;
-        /** @default false */
-        reviewed: boolean;
-        /** @default 0 */
-        completenessScore: number;
-        /** @default [] */
-        aliases: string[];
-        /** Format: date-time */
-        createdAt: string;
-        /** Format: date-time */
-        updatedAt: string;
-        makeName: string;
-        modelName: string;
-        generationCode: string;
-      }[];
-      page: number;
-      pageSize: number;
-      total: number;
-      totalPages: number;
-    };
     ManufacturerSummaryPageDto_Output: {
       items: {
         id: string;
@@ -844,6 +804,7 @@ export interface components {
       pricePence: number;
       title?: string;
       description?: string;
+      postcode?: string;
       locationPostcodeArea?: string;
       /** @default GB */
       locationCountry: string;
@@ -1293,6 +1254,271 @@ export interface components {
       /** @enum {string} */
       category: 'EXTERIOR' | 'INTERIOR' | 'ENGINE' | 'BOOT' | 'DAMAGE' | 'DOCUMENT' | 'OTHER';
     };
+    SearchRequestDto: {
+      query?: string;
+      makeIds?: string[];
+      modelIds?: string[];
+      generationIds?: string[];
+      derivativeIds?: string[];
+      minPricePence?: number;
+      maxPricePence?: number;
+      minYear?: number;
+      maxYear?: number;
+      minMileage?: number;
+      maxMileage?: number;
+      fuel?: ('PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN')[];
+      transmission?: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+      drivetrain?: ('FWD' | 'RWD' | 'AWD')[];
+      bodyStyle?: (
+        'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP'
+      )[];
+      colourFamily?: (
+        | 'BLACK'
+        | 'WHITE'
+        | 'BLUE'
+        | 'RED'
+        | 'GREEN'
+        | 'GREY'
+        | 'SILVER'
+        | 'YELLOW'
+        | 'ORANGE'
+        | 'PURPLE'
+        | 'BROWN'
+        | 'BEIGE'
+      )[];
+      minPowerBhp?: number;
+      minTorqueNm?: number;
+      maxZeroToSixtyTwo?: number;
+      engineFamily?: string[];
+      equipmentIds?: string[];
+      originLatitude?: number;
+      originLongitude?: number;
+      maxDistanceMiles?: number;
+      boundingBox?: {
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+      };
+      /**
+       * @default RELEVANCE
+       * @enum {string}
+       */
+      sort: 'RELEVANCE' | 'PRICE_ASC' | 'PRICE_DESC' | 'MILEAGE_ASC' | 'YEAR_DESC' | 'DISTANCE_ASC';
+      /** @default 1 */
+      page: number;
+      /** @default 20 */
+      pageSize: number;
+    };
+    SearchResponseDto_Output: {
+      items: {
+        listingId: string;
+        vehicleId: string;
+        pricePence: number;
+        title: string | null;
+        thumbnailUrl: string | null;
+        /** @enum {string} */
+        status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+        publishedAt: string | null;
+        makeId: string;
+        makeName: string;
+        modelId: string;
+        modelName: string;
+        generationId: string;
+        generationCode: string;
+        derivativeId: string;
+        derivativeName: string;
+        /** @enum {string} */
+        bodyStyle:
+          'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+        /** @enum {string} */
+        fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+        transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+        /** @enum {string} */
+        drivetrain: 'FWD' | 'RWD' | 'AWD';
+        powerBhp: number | null;
+        mileageMiles: number;
+        firstRegisteredAt: string | null;
+        colourFamily:
+          | (
+              | 'BLACK'
+              | 'WHITE'
+              | 'BLUE'
+              | 'RED'
+              | 'GREEN'
+              | 'GREY'
+              | 'SILVER'
+              | 'YELLOW'
+              | 'ORANGE'
+              | 'PURPLE'
+              | 'BROWN'
+              | 'BEIGE'
+            )
+          | null;
+        locationPostcodeArea: string | null;
+        distanceMiles: number | null;
+      }[];
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+      searchId: string;
+    };
+    AiMessageRequestDto: {
+      /** Format: uuid */
+      sessionId?: string;
+      message: string;
+    };
+    AiMessageResponseDto_Output: {
+      /** Format: uuid */
+      sessionId: string;
+      filters: {
+        query?: string;
+        makeIds?: string[];
+        minPricePence?: number;
+        maxPricePence?: number;
+        minYear?: number;
+        maxYear?: number;
+        minMileage?: number;
+        maxMileage?: number;
+        fuel?: ('PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN')[];
+        transmission?: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+        drivetrain?: ('FWD' | 'RWD' | 'AWD')[];
+        bodyStyle?: (
+          'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP'
+        )[];
+        colourFamily?: (
+          | 'BLACK'
+          | 'WHITE'
+          | 'BLUE'
+          | 'RED'
+          | 'GREEN'
+          | 'GREY'
+          | 'SILVER'
+          | 'YELLOW'
+          | 'ORANGE'
+          | 'PURPLE'
+          | 'BROWN'
+          | 'BEIGE'
+        )[];
+        minPowerBhp?: number;
+        minTorqueNm?: number;
+        maxZeroToSixtyTwo?: number;
+        engineFamily?: string[];
+        equipmentIds?: string[];
+      };
+      clarifyingQuestion?: string;
+      nextQuestion?: string;
+      results?: {
+        items: {
+          listingId: string;
+          vehicleId: string;
+          pricePence: number;
+          title: string | null;
+          thumbnailUrl: string | null;
+          /** @enum {string} */
+          status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+          publishedAt: string | null;
+          makeId: string;
+          makeName: string;
+          modelId: string;
+          modelName: string;
+          generationId: string;
+          generationCode: string;
+          derivativeId: string;
+          derivativeName: string;
+          /** @enum {string} */
+          bodyStyle:
+            'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+          /** @enum {string} */
+          fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+          transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+          /** @enum {string} */
+          drivetrain: 'FWD' | 'RWD' | 'AWD';
+          powerBhp: number | null;
+          mileageMiles: number;
+          firstRegisteredAt: string | null;
+          colourFamily:
+            | (
+                | 'BLACK'
+                | 'WHITE'
+                | 'BLUE'
+                | 'RED'
+                | 'GREEN'
+                | 'GREY'
+                | 'SILVER'
+                | 'YELLOW'
+                | 'ORANGE'
+                | 'PURPLE'
+                | 'BROWN'
+                | 'BEIGE'
+              )
+            | null;
+          locationPostcodeArea: string | null;
+          distanceMiles: number | null;
+        }[];
+        page: number;
+        pageSize: number;
+        total: number;
+        totalPages: number;
+        searchId: string;
+      };
+      searchId?: string;
+      recommendations?: {
+        derivativeId: string;
+        listing: {
+          listingId: string;
+          vehicleId: string;
+          pricePence: number;
+          title: string | null;
+          thumbnailUrl: string | null;
+          /** @enum {string} */
+          status: 'DRAFT' | 'LIVE' | 'PAUSED' | 'RESERVED' | 'SOLD' | 'ARCHIVED';
+          publishedAt: string | null;
+          makeId: string;
+          makeName: string;
+          modelId: string;
+          modelName: string;
+          generationId: string;
+          generationCode: string;
+          derivativeId: string;
+          derivativeName: string;
+          /** @enum {string} */
+          bodyStyle:
+            'HATCHBACK' | 'SALOON' | 'ESTATE' | 'COUPE' | 'CONVERTIBLE' | 'SUV' | 'MPV' | 'PICKUP';
+          /** @enum {string} */
+          fuel: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PHEV' | 'ELECTRIC' | 'HYDROGEN';
+          transmissions: ('MANUAL' | 'AUTOMATIC' | 'DCT' | 'CVT')[];
+          /** @enum {string} */
+          drivetrain: 'FWD' | 'RWD' | 'AWD';
+          powerBhp: number | null;
+          mileageMiles: number;
+          firstRegisteredAt: string | null;
+          colourFamily:
+            | (
+                | 'BLACK'
+                | 'WHITE'
+                | 'BLUE'
+                | 'RED'
+                | 'GREEN'
+                | 'GREY'
+                | 'SILVER'
+                | 'YELLOW'
+                | 'ORANGE'
+                | 'PURPLE'
+                | 'BROWN'
+                | 'BEIGE'
+              )
+            | null;
+          locationPostcodeArea: string | null;
+          distanceMiles: number | null;
+        };
+        matchScore: number;
+        reasoning: string;
+      }[];
+      candidateCount?: number;
+      totalMatches?: number;
+    };
     DvlaLookupRequestDto: {
       registration: string;
     };
@@ -1364,28 +1590,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  CatalogueController_listDerivatives: {
-    parameters: {
-      query?: {
-        page?: number;
-        pageSize?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PublishedDerivativePageDto_Output'];
-        };
-      };
-    };
-  };
   CatalogueAdminController_listManufacturers: {
     parameters: {
       query?: {
@@ -2082,6 +2286,75 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['MediaDto_Output'];
+        };
+      };
+    };
+  };
+  SearchController_search: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SearchRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SearchResponseDto_Output'];
+        };
+      };
+    };
+  };
+  AiSearchController_message: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AiMessageRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AiMessageResponseDto_Output'];
+        };
+      };
+    };
+  };
+  AiSearchController_carFinder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AiMessageRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AiMessageResponseDto_Output'];
         };
       };
     };

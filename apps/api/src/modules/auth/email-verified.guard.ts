@@ -1,7 +1,8 @@
 /**
  * plans/07-authentication-authorization.md §3's "Verified-email gating" row
  * — require a verified email before creating a listing or sending a
- * message; not required to browse, search, save, or watch. Per-route via
+ * message; also required for paid AI Search/Car Finder (Plan 14). Not
+ * required for conventional browsing/search. Per-route via
  * `@UseGuards(EmailVerifiedGuard)`, applied by whichever plan owns those
  * endpoints (Plan 11 listings, Plan 25 messaging) — see
  * apps/api/src/modules/listings/listings.controller.ts for this plan's own
